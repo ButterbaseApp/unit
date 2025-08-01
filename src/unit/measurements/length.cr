@@ -2,6 +2,7 @@ require "../measurement"
 require "../conversion"
 require "../arithmetic"
 require "../comparison"
+require "../formatter"
 
 module Unit
   # Length measurement class with comprehensive unit support
@@ -18,6 +19,7 @@ module Unit
     include Conversion
     include Arithmetic
     include Comparison
+    include Formatter
     include Comparable(self)
     # Comprehensive length unit enumeration
     #

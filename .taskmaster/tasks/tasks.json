@@ -630,7 +630,7 @@
           4,
           5
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -638,7 +638,7 @@
             "description": "Set up the base Formatter module file and integrate it with the Measurement class",
             "dependencies": [],
             "details": "Create src/unit/formatter.cr with the module structure and include it in the Measurement class. Ensure proper module nesting and namespace organization.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify module can be included in Measurement class, test that module methods are accessible"
           },
           {
@@ -649,7 +649,7 @@
               "10.1"
             ],
             "details": "Implement to_s(io : IO) for IO streaming support and format(precision, unit_format) method with configurable decimal precision and unit display formats (:short, :long). Handle whole number formatting without decimals.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test IO streaming output, verify precision handling (0-10 decimals), test whole numbers display without decimals, verify different unit formats"
           },
           {
@@ -660,7 +660,7 @@
               "10.1"
             ],
             "details": "Implement humanize method that converts unit names to human-readable format with proper pluralization. Handle edge cases like 1 (singular), 0 (plural), negative values, and fractional values. Convert enum names to readable format (e.g., Kilogram -> kilogram/kilograms).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test pluralization for 0, 1, multiple values, negative values, and fractions. Verify unit name formatting from enums"
           },
           {
@@ -671,7 +671,7 @@
               "10.2"
             ],
             "details": "Implement format_value(precision) to handle BigDecimal formatting with configurable precision and smart whole number detection. Implement format_unit(format) to handle different unit display formats using enum methods like to_s, underscore transformations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test format_value with various precisions and number types, verify format_unit handles all format symbols correctly"
           },
           {
@@ -682,7 +682,7 @@
               "10.4"
             ],
             "details": "Add support for unit-specific formatting rules, such as using unit aliases when available (e.g., kg instead of kilogram in short format). Ensure the formatter can access unit enum aliases and handle them appropriately in different format modes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test that unit aliases are used in short format, verify long format uses full names, test edge cases with units that don't have aliases"
           }
         ]
@@ -1056,7 +1056,7 @@
     ],
     "metadata": {
       "created": "2025-08-01T04:58:51.369Z",
-      "updated": "2025-08-01T06:53:26.993Z",
+      "updated": "2025-08-01T07:05:06.583Z",
       "description": "Tasks for master context"
     }
   }

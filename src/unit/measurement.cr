@@ -1,6 +1,7 @@
 require "big"
 require "./arithmetic"
 require "./conversion"
+require "./formatter"
 
 module Unit
   # Generic measurement class with phantom types for compile-time type safety
@@ -14,6 +15,7 @@ module Unit
   class Measurement(T, U)
     include Arithmetic
     include Conversion
+    include Formatter
     
     # Value stored as BigDecimal for precision
     getter value : BigDecimal
@@ -44,12 +46,6 @@ module Unit
       validate_value!
     end
     
-    # Returns a readable string representation of the measurement
-    #
-    # Example: "10.5 kg", "5.0 m"
-    def to_s(io : IO) : Nil
-      io << @value << " " << @unit.to_s.downcase
-    end
     
     # Returns a detailed string representation for debugging
     #
