@@ -1,9 +1,9 @@
 # unit
 
-[![GitHub release](https://img.shields.io/github/release/watzon/unit.svg)](https://github.com/watzon/unit/releases)
-[![Build Status](https://github.com/watzon/unit/workflows/CI/badge.svg)](https://github.com/watzon/unit/actions)
+[![GitHub release](https://img.shields.io/github/release/ButterbaseApp/unit.svg)](https://github.com/ButterbaseApp/unit/releases)
+[![Build Status](https://github.com/ButterbaseApp/unit/workflows/CI/badge.svg)](https://github.com/ButterbaseApp/unit/actions)
 [![Crystal Version](https://img.shields.io/badge/crystal-%3E%3D1.0.0-brightgreen.svg)](https://crystal-lang.org/)
-[![License](https://img.shields.io/github/license/watzon/unit.svg)](https://github.com/watzon/unit/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/ButterbaseApp/unit.svg)](https://github.com/ButterbaseApp/unit/blob/main/LICENSE)
 
 Type-safe, compile-time unit conversions for Crystal with zero runtime overhead and arbitrary precision arithmetic.
 
@@ -12,6 +12,7 @@ Type-safe, compile-time unit conversions for Crystal with zero runtime overhead 
 - [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
+  - [Numeric Extensions (Optional)](#numeric-extensions-optional)
   - [Basic Conversions](#basic-conversions)
   - [Arithmetic Operations](#arithmetic-operations)
   - [String Parsing](#string-parsing)
@@ -57,6 +58,7 @@ The Unit library provides a robust, type-safe system for handling measurements a
 - **Phantom Type System**: Compile-time type safety using Crystal's advanced type system
 - **Arbitrary Precision**: BigDecimal arithmetic prevents floating-point errors
 - **Zero Runtime Overhead**: All type checking happens at compile time
+- **Numeric Extensions**: Optional convenient syntax like `5.grams` and `1.2.kg` for intuitive measurement creation
 - **Scientific Accuracy**: Uses exact conversion factors from international standards
 - **Framework Integration**: Deep integration with Lucky/Avram for web applications
 - **Natural Language Parsing**: Flexible string parsing including fractions and aliases
@@ -86,7 +88,7 @@ The Unit library provides a robust, type-safe system for handling measurements a
    ```yaml
    dependencies:
      unit:
-       github: watzon/unit
+       github:/ButterbaseApp/unit
    ```
 
 2. Run `shards install`
@@ -95,6 +97,43 @@ The Unit library provides a robust, type-safe system for handling measurements a
 
 ```crystal
 require "unit"
+```
+
+### Numeric Extensions (Optional)
+
+For even more convenient measurement creation, you can optionally require the numeric extensions:
+
+```crystal
+require "unit"
+require "unit/extensions"  # Optional - enables convenient syntax
+
+# With extensions enabled, you can create measurements directly from numbers:
+weight = 5.grams           # => Unit::Weight.new(5, :gram)
+length = 1.2.meters        # => Unit::Length.new(1.2, :meter)
+volume = 500.ml            # => Unit::Volume.new(500, :milliliter)
+
+# All numeric types supported:
+precise = BigDecimal.new("3.14159").grams
+big_num = 1000000_i64.kg
+float = 2.5_f32.liters
+
+# Works seamlessly with arithmetic:
+total = 5.grams + 2.kg + 500.mg  # => 2005.50 gram
+distance = 1.meter + 50.cm + 25.mm  # => 1.52 meter
+
+# Available methods for each measurement type:
+# Weight: .grams, .gram, .g, .kilograms, .kg, .pounds, .lb, etc.
+# Length: .meters, .m, .centimeters, .cm, .feet, .ft, .inches, .in, etc.
+# Volume: .liters, .l, .milliliters, .ml, .cups, .gallons, .gal, etc.
+```
+
+The extensions are optional and don't pollute the global namespace unless explicitly required. Without extensions, the standard constructor syntax remains available:
+
+```crystal
+# Standard syntax (always available):
+weight = Unit::Weight.new(5, :gram)
+length = Unit::Length.new(1.2, :meter)
+volume = Unit::Volume.new(500, :milliliter)
 ```
 
 ### Basic Conversions
@@ -907,7 +946,7 @@ We welcome contributions to make the Unit library even better! Here's how you ca
 
 ### Getting Started
 
-1. Fork the repository (<https://github.com/watzon/unit/fork>)
+1. Fork the repository (<https://github.com/ButterbaseApp/unit/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Make your changes with comprehensive tests
 4. Commit your changes (`git commit -am 'Add some feature'`)
