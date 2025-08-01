@@ -1,0 +1,73 @@
+# Task ID: 15
+# Title: Create Comprehensive Documentation and Examples
+# Status: pending
+# Dependencies: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+# Priority: medium
+# Description: Write API documentation, guides, and example applications
+# Details:
+Create comprehensive documentation:
+
+1. **README.md** with:
+   - Installation instructions
+   - Quick start examples
+   - Feature overview
+   - Links to detailed docs
+
+2. **API Documentation** using Crystal's doc generator:
+   - Document all public methods with examples
+   - Include type signatures and return values
+   - Add @[Deprecated] annotations where needed
+
+3. **Guide Documents**:
+   - `docs/getting-started.md` - Basic usage patterns
+   - `docs/lucky-integration.md` - Avram/Lucky setup guide
+   - `docs/custom-measurements.md` - Creating new measurement types
+   - `docs/performance.md` - Optimization tips and benchmarks
+
+4. **Example Applications**:
+   - `examples/basic_usage.cr` - Simple conversions and arithmetic
+   - `examples/lucky_app/` - Full Lucky app with product weights
+   - `examples/scientific.cr` - High-precision calculations
+   - `examples/cooking.cr` - Recipe conversions
+
+5. **Migration Guide**:
+   - Converting from manual calculations
+   - Upgrading from other libraries
+   - Common patterns and idioms
+
+Use crystal docs to generate HTML documentation and ensure all code examples compile and run correctly.
+
+# Test Strategy:
+Verify all code examples compile and produce expected output, test documentation generation with 'crystal docs', ensure Lucky example app runs without errors, validate all links and references
+
+# Subtasks:
+## 1. Create README.md with Installation and Quick Start [pending]
+### Dependencies: None
+### Description: Write the main README file with installation instructions, quick start examples, and feature overview
+### Details:
+Create a comprehensive README.md following the Standard Readme specification. Include: clear installation instructions for adding the shard dependency, quick start code examples showing basic unit conversions, feature overview highlighting key capabilities like type safety and precision, badges for CI status and documentation, links to detailed documentation sections, and a table of contents for easy navigation.
+
+## 2. Generate API Documentation with Crystal Docs [pending]
+### Dependencies: None
+### Description: Document all public APIs using Crystal's documentation comments and generate HTML documentation
+### Details:
+Add comprehensive documentation comments to all public classes, modules, and methods in the codebase. Include: method signatures with parameter types and return values, usage examples for each public method, @[Deprecated] annotations where applicable, module-level documentation explaining the purpose and usage patterns, macro documentation with expansion examples. Configure crystal docs generation with custom CSS if needed and ensure all examples in comments are valid Crystal code.
+
+## 3. Write User Guide Documentation [pending]
+### Dependencies: 15.1
+### Description: Create comprehensive guide documents covering different usage patterns and integrations
+### Details:
+Create four detailed guide documents: docs/getting-started.md covering basic usage patterns, unit conversion examples, and arithmetic operations; docs/lucky-integration.md explaining Avram model integration, form handling, and database storage patterns; docs/custom-measurements.md showing how to create new measurement types with proper unit enums and conversion factors; docs/performance.md with optimization tips, benchmark results, and best practices for high-precision calculations. Each guide should include runnable code examples and troubleshooting sections.
+
+## 4. Develop Example Applications [pending]
+### Dependencies: 15.2, 15.3
+### Description: Create complete example applications demonstrating various use cases
+### Details:
+Develop four example applications: examples/basic_usage.cr demonstrating simple conversions, arithmetic operations, and formatting; examples/lucky_app/ as a full Lucky application with products having weights, a shopping cart calculating total weights, and form handling for measurements; examples/scientific.cr showing high-precision calculations, custom precision settings, and scientific notation handling; examples/cooking.cr featuring recipe scaling, ingredient conversions between volume and weight, and temperature conversions. Each example should be self-contained and runnable.
+
+## 5. Create Migration Guide and Best Practices [pending]
+### Dependencies: 15.3, 15.4
+### Description: Write migration guide for adopting the library and document best practices
+### Details:
+Create docs/migration-guide.md covering: step-by-step instructions for converting from manual calculation approaches, migration from other measurement libraries with code comparison examples, common patterns and idioms for effective library usage, performance considerations when migrating existing codebases, database migration strategies for existing data. Include a troubleshooting section addressing common migration issues and a checklist for validating successful migration.
+

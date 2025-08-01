@@ -3,6 +3,10 @@ require "../conversion"
 require "../arithmetic"
 require "../comparison"
 require "../formatter"
+require "../converters/big_decimal_converter"
+require "../converters/enum_converter"
+require "json"
+require "yaml"
 
 module Unit
   # Volume measurement class with comprehensive unit support
@@ -210,6 +214,89 @@ module Unit
       
       # For volume measurements, we might want to reject negative values in cooking contexts
       # This is left flexible but could be enhanced for specific use cases
+    end
+    
+    # JSON serialization support
+    def to_json(json : JSON::Builder) : Nil
+      json.object do
+        json.field "value" do
+          BigDecimalConverter.to_json(@value, json)
+        end
+        json.field "unit" do
+          EnumConverter(Unit).to_json(@unit, json)
+        end
+      end
+    end
+    
+    # YAML serialization support
+    def to_yaml(yaml : YAML::Nodes::Builder) : Nil
+      yaml.mapping do
+        yaml.scalar "value"
+        BigDecimalConverter.to_yaml(@value, yaml)
+        yaml.scalar "unit"
+        EnumConverter(Unit).to_yaml(@unit, yaml)
+      end
+    end
+    
+    # JSON deserialization
+    def self.from_json(string_or_io) : self
+      parser = JSON::PullParser.new(string_or_io)
+      value = nil
+      unit = nil
+      
+      parser.read_object do |key|
+        case key
+        when "value"
+          value = BigDecimalConverter.from_json(parser)
+        when "unit"
+          unit = EnumConverter(Unit).from_json(parser)
+        else
+          parser.skip
+        end
+      end
+      
+      raise JSON::ParseException.new("Missing 'value' field", 0, 0) unless value
+      raise JSON::ParseException.new("Missing 'unit' field", 0, 0) unless unit
+      
+      new(value, unit)
+    end
+    
+    # YAML deserialization
+    def self.from_yaml(string_or_io) : self
+      yaml = YAML.parse(string_or_io)
+      
+      value_any = yaml["value"]?
+      unit_str = yaml["unit"]?.try(&.as_s?)
+      
+      raise YAML::ParseException.new("Missing 'value' field", 0, 0) unless value_any
+      raise YAML::ParseException.new("Missing 'unit' field", 0, 0) unless unit_str
+      
+      # Handle both string and number values
+      value = case value_any
+              when .as_s?
+                BigDecimal.new(value_any.as_s)
+              when .as_f?
+                BigDecimal.new(value_any.as_f.to_s)
+              when .as_i?
+                BigDecimal.new(value_any.as_i.to_s)
+              else
+                raise YAML::ParseException.new("Invalid 'value' field type", 0, 0)
+              end
+      
+      # Parse unit with case-insensitive support
+      unit = Unit.parse?(unit_str) || begin
+        normalized = unit_str.downcase
+        Unit.each do |enum_value|
+          break enum_value if enum_value.to_s.downcase == normalized
+        end
+      end
+      
+      unless unit.is_a?(Unit)
+        valid_values = Unit.values.map(&.to_s).join(", ")
+        raise YAML::ParseException.new("Invalid unit value: '#{unit_str}'. Valid values are: #{valid_values}", 0, 0)
+      end
+      
+      new(value, unit)
     end
   end
 end

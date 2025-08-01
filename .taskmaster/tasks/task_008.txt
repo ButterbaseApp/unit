@@ -1,0 +1,77 @@
+# Task ID: 8
+# Title: Implement Comparison Operations
+# Status: done
+# Dependencies: 6
+# Priority: medium
+# Description: Add equality and ordering comparisons with automatic unit conversion
+# Details:
+Update measurement.cr to include Comparable and add:
+```crystal
+module Unit
+  class Measurement(T, U)
+    include Comparable(self)
+    
+    def <=>(other : self) : Int32
+      if @unit == other.unit
+        @value <=> other.value
+      else
+        converted = other.convert_to(@unit)
+        @value <=> converted.value
+      end
+    end
+    
+    def ==(other : self) : Bool
+      if @unit == other.unit
+        @value == other.value
+      else
+        converted = other.convert_to(@unit)
+        @value == converted.value
+      end
+    end
+    
+    def hash : UInt64
+      # Ensure equal measurements have equal hashes
+      base_value = to_base_unit_value
+      {T.name, base_value.to_s}.hash
+    end
+  end
+end
+```
+- Implement Comparable for full ordering support
+- Auto-convert for cross-unit comparisons
+- Ensure hash equality for equal measurements regardless of unit
+
+# Test Strategy:
+Test comparisons across different units, verify hash equality for equivalent measurements, test sorting arrays of measurements, verify Comparable methods work correctly
+
+# Subtasks:
+## 1. Include Comparable Module in Measurement Class [done]
+### Dependencies: None
+### Description: Add the Comparable module inclusion to the Measurement class to enable ordering operations
+### Details:
+Update src/unit/measurement.cr to include Comparable(self) at the class level. This will provide the foundation for comparison operators and enable the Measurement class to be used in sorted collections. The inclusion should be placed after the class declaration and before any method definitions.
+
+## 2. Implement Spaceship Operator with Unit Conversion [done]
+### Dependencies: 8.1
+### Description: Implement the <=> operator that handles automatic unit conversion for cross-unit comparisons
+### Details:
+Add the <=> method to Measurement class that compares values directly when units match, or converts the other measurement to this unit before comparison. The method should return -1, 0, or 1 as per Crystal's Comparable protocol. Handle the conversion using the existing convert_to method and ensure proper error handling for incompatible unit conversions.
+
+## 3. Implement Equality Operator with Unit Conversion [done]
+### Dependencies: 8.1
+### Description: Create the == operator that properly compares measurements across different units
+### Details:
+Implement the == method that returns true only when measurements represent the same quantity, regardless of their units. For same-unit comparisons, compare values directly. For different units, convert one measurement to the other's unit before comparison. This should handle floating-point precision issues appropriately by using BigDecimal comparisons.
+
+## 4. Implement Hash Method for Consistent Hashing [done]
+### Dependencies: 8.3
+### Description: Create a hash method that ensures equal measurements produce equal hash values regardless of their units
+### Details:
+Implement the hash method that converts the measurement to its base unit value before hashing. This ensures that 1000g and 1kg produce the same hash value. The hash should combine the type name (T.name) and the base unit value string representation to create a unique hash. Use Crystal's built-in hash method on the tuple of these values.
+
+## 5. Add Comprehensive Comparison Tests [done]
+### Dependencies: 8.2, 8.3, 8.4
+### Description: Create a comprehensive test suite for all comparison operations including sorting and hash behavior
+### Details:
+Write tests in spec/unit/measurement_spec.cr covering: sorting arrays of mixed-unit measurements, using measurements in Set and Hash collections, all Comparable methods (<, >, <=, >=, between?), equality across units, and hash consistency. Include edge cases like comparing measurements with very small differences and ensure proper behavior with BigDecimal precision.
+

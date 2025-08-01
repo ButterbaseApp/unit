@@ -1,7 +1,11 @@
 require "big"
+require "json"
+require "yaml"
 require "./arithmetic"
 require "./conversion"
 require "./formatter"
+require "./converters/big_decimal_converter"
+require "./converters/enum_converter"
 
 module Unit
   # Generic measurement class with phantom types for compile-time type safety
@@ -85,6 +89,28 @@ module Unit
       # Optional: Add domain-specific validation rules
       # For example, physical measurements might want to reject negative values
       # This is left flexible for subclasses or specific measurement types
+    end
+    
+    # JSON serialization support
+    def to_json(json : JSON::Builder) : Nil
+      json.object do
+        json.field "value" do
+          BigDecimalConverter.to_json(@value, json)
+        end
+        json.field "unit" do
+          EnumConverter(U).to_json(@unit, json)
+        end
+      end
+    end
+    
+    # YAML serialization support
+    def to_yaml(yaml : YAML::Nodes::Builder) : Nil
+      yaml.mapping do
+        yaml.scalar "value"
+        BigDecimalConverter.to_yaml(@value, yaml)
+        yaml.scalar "unit"
+        EnumConverter(U).to_yaml(@unit, yaml)
+      end
     end
   end
 end

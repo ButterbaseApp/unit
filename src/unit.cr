@@ -1,5 +1,7 @@
 # A type-safe measurement library for Crystal
 require "./unit/exceptions"
+require "./unit/converters/big_decimal_converter"
+require "./unit/converters/enum_converter"
 require "./unit/measurement"
 require "./unit/conversion"
 require "./unit/parser"

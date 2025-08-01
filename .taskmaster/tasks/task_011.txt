@@ -1,0 +1,80 @@
+# Task ID: 11
+# Title: Create Custom Exception Types
+# Status: done
+# Dependencies: 1
+# Priority: low
+# Description: Implement domain-specific exception classes for better error handling
+# Details:
+Create src/unit/exceptions.cr:
+```crystal
+module Unit
+  class UnitError < Exception
+  end
+  
+  class ConversionError < UnitError
+    def initialize(from_unit, to_unit, reason = nil)
+      message = "Cannot convert from #{from_unit} to #{to_unit}"
+      message += ": #{reason}" if reason
+      super(message)
+    end
+  end
+  
+  class ParseError < UnitError
+    def initialize(input : String, reason = nil)
+      message = "Cannot parse '#{input}' as measurement"
+      message += ": #{reason}" if reason
+      super(message)
+    end
+  end
+  
+  class ValidationError < UnitError
+    def initialize(message : String)
+      super(message)
+    end
+  end
+  
+  class ArithmeticError < UnitError
+    def initialize(operation : String, reason : String)
+      super("Arithmetic operation '#{operation}' failed: #{reason}")
+    end
+  end
+end
+```
+- Create hierarchy of domain-specific exceptions
+- Include context in error messages
+- Make debugging easier with clear error types
+
+# Test Strategy:
+Test each exception type can be raised and caught, verify error messages include context, test exception inheritance hierarchy
+
+# Subtasks:
+## 1. Define Base Exception Hierarchy [done]
+### Dependencies: None
+### Description: Create the foundational UnitError exception class and establish the inheritance structure
+### Details:
+Implement the base UnitError class that inherits from Crystal's Exception class. This will serve as the parent class for all domain-specific exceptions in the Unit module. Include a basic constructor that accepts a message parameter and any common functionality that should be shared across all unit-related exceptions.
+
+## 2. Implement ConversionError Exception [done]
+### Dependencies: 11.1
+### Description: Create specialized exception for unit conversion failures with contextual information
+### Details:
+Implement ConversionError class that inherits from UnitError. The constructor should accept from_unit and to_unit parameters (as strings or unit types) and an optional reason parameter. Build informative error messages that clearly indicate which units failed to convert and why. Consider adding additional metadata fields that could help with debugging, such as the value being converted.
+
+## 3. Implement ParseError and ValidationError Exceptions [done]
+### Dependencies: 11.1
+### Description: Create exceptions for parsing failures and validation errors with detailed context
+### Details:
+Implement ParseError for when string inputs cannot be parsed into measurements, accepting the invalid input string and optional reason. Implement ValidationError for general validation failures like negative values where only positive are allowed, or values outside acceptable ranges. Both should provide clear, actionable error messages that help developers understand what went wrong.
+
+## 4. Implement ArithmeticError Exception [done]
+### Dependencies: 11.1
+### Description: Create specialized exception for arithmetic operation failures between measurements
+### Details:
+Implement ArithmeticError class for when arithmetic operations fail, such as adding incompatible units or division by zero. The constructor should accept the operation name (e.g., 'addition', 'division') and a reason explaining the failure. Consider including the operands' types or units in the error message for better debugging context.
+
+## 5. Add Helper Methods and Documentation [done]
+### Dependencies: 11.1, 11.2, 11.3, 11.4
+### Description: Enhance exceptions with utility methods and comprehensive documentation
+### Details:
+Add helper methods to exceptions where appropriate, such as methods to extract unit information from ConversionError or the problematic input from ParseError. Document each exception class with Crystal doc comments explaining when they should be raised, what information they contain, and provide usage examples. Consider adding factory methods for common error scenarios to ensure consistent error messages across the codebase.
+
