@@ -16,7 +16,7 @@ module Unit
       unless node.is_a?(YAML::Nodes::Scalar)
         node.raise "Expected scalar, not #{node.class}"
       end
-      
+
       parse_enum(node.value, node)
     end
 
@@ -32,7 +32,7 @@ module Unit
         T.each do |enum_value|
           return enum_value if enum_value.to_s.downcase == normalized
         end
-        
+
         # If no match found, raise an error
         valid_values = T.values.map(&.to_s).join(", ")
         error_context.raise "Invalid #{T} value: '#{value}'. Valid values are: #{valid_values}"

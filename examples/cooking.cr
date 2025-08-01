@@ -20,10 +20,10 @@ class Recipe
   property sugar : Unit::Volume
   property milk : Unit::Volume
   property butter : Unit::Weight
-  
+
   def initialize(@flour, @sugar, @milk, @butter)
   end
-  
+
   def scale(factor : Number)
     Recipe.new(
       Unit::Volume.new(@flour.value * factor, @flour.unit),
@@ -32,7 +32,7 @@ class Recipe
       Unit::Weight.new(@butter.value * factor, @butter.unit)
     )
   end
-  
+
   def to_s(io)
     io << "Recipe:\n"
     io << "  Flour: #{@flour.humanize}\n"
@@ -46,7 +46,7 @@ original = Recipe.new(
   flour: Unit::Volume.new(2, :cup),
   sugar: Unit::Volume.new(0.5, :cup),
   milk: Unit::Volume.new(1.25, :cup),
-  butter: Unit::Weight.new(8, :ounce)  # 2 sticks
+  butter: Unit::Weight.new(8, :ounce) # 2 sticks
 )
 
 puts "Original recipe (serves 4):"
@@ -66,11 +66,11 @@ puts "\n=== International Recipe Conversion ==="
 
 # Convert an American recipe to metric
 american_recipe = {
-  flour: Unit::Volume.new(3, :cup),
-  sugar: Unit::Volume.new(1, :cup),
-  milk: Unit::Volume.new(2, :cup),
+  flour:   Unit::Volume.new(3, :cup),
+  sugar:   Unit::Volume.new(1, :cup),
+  milk:    Unit::Volume.new(2, :cup),
   vanilla: Unit::Volume.new(2, :teaspoon),
-  salt: Unit::Volume.new(0.5, :teaspoon)
+  salt:    Unit::Volume.new(0.5, :teaspoon),
 }
 
 puts "American Recipe:"
@@ -86,7 +86,7 @@ american_recipe.each do |ingredient, amount|
             when .>(1000)
               Unit::Volume.new((metric.value / 1000).round(2), :liter)
             else
-              Unit::Volume.new(metric.value.round(-1), :milliliter)  # Round to nearest 10
+              Unit::Volume.new(metric.value.round(-1), :milliliter) # Round to nearest 10
             end
   puts "  #{ingredient}: #{rounded.humanize}"
 end
@@ -110,15 +110,15 @@ puts "\n=== Temperature Monitoring (Simulated) ==="
 # While we don't have a Temperature measurement, we can simulate
 class Temperature
   getter celsius : BigDecimal
-  
+
   def initialize(@celsius : Number)
     @celsius = BigDecimal.new(@celsius.to_s)
   end
-  
+
   def fahrenheit
     (@celsius * 9 / 5) + 32
   end
-  
+
   def to_s(io)
     io << "#{@celsius}°C (#{fahrenheit.round(0)}°F)"
   end
@@ -157,14 +157,14 @@ class CookieRecipe
   property dough_weight : Unit::Weight
   property cookies_per_batch : Int32
   property cookie_weight : Unit::Weight
-  
+
   def initialize(@dough_weight, @cookies_per_batch, @cookie_weight)
   end
-  
+
   def total_cookies
     (@dough_weight.value / @cookie_weight.value).to_i
   end
-  
+
   def batches_needed
     (total_cookies.to_f / @cookies_per_batch).ceil
   end
@@ -200,7 +200,7 @@ butter2 = Unit::Weight.new(8, :ounce)
 # Add to shopping list
 if current = shopping_list["flour"]?
   shopping_list["flour"] = Unit::Volume.new(
-    current.as(Unit::Volume).value + flour2.value, 
+    current.as(Unit::Volume).value + flour2.value,
     :cup
   )
 end
@@ -232,21 +232,21 @@ puts "\n=== Nutrition Calculations ==="
 # Calculate calories from macros (simplified)
 class NutritionCalc
   CALORIES_PER_GRAM = {
-    carbs: BigDecimal.new("4"),
+    carbs:   BigDecimal.new("4"),
     protein: BigDecimal.new("4"),
-    fat: BigDecimal.new("9")
+    fat:     BigDecimal.new("9"),
   }
-  
+
   def self.calculate_calories(carbs : Unit::Weight, protein : Unit::Weight, fat : Unit::Weight)
     carb_cal = carbs.to(:gram).value * CALORIES_PER_GRAM[:carbs]
     protein_cal = protein.to(:gram).value * CALORIES_PER_GRAM[:protein]
     fat_cal = fat.to(:gram).value * CALORIES_PER_GRAM[:fat]
-    
+
     {
-      carbs: carb_cal,
+      carbs:   carb_cal,
       protein: protein_cal,
-      fat: fat_cal,
-      total: carb_cal + protein_cal + fat_cal
+      fat:     fat_cal,
+      total:   carb_cal + protein_cal + fat_cal,
     }
   end
 end

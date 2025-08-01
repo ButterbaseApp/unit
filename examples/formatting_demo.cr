@@ -53,7 +53,7 @@ puts "=== Different measurement types with formatting ==="
 measurements = [
   Unit::Weight.new(2.2, Unit::Weight::Unit::Pound),
   Unit::Length.new(12, Unit::Length::Unit::Inch),
-  Unit::Volume.new(1, Unit::Volume::Unit::Cup)
+  Unit::Volume.new(1, Unit::Volume::Unit::Cup),
 ]
 
 measurements.each do |measurement|

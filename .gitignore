@@ -3,6 +3,11 @@
 /bin/
 /.shards/
 *.dwarf
+CLAUDE.local.md
+.claude/
+.cursor/
+.taskmaster/
+.mcp.json
 
 # Keep shard.lock for CI reproducibility
 
@@ -30,4 +35,4 @@ node_modules/
 
 # Task files
 # tasks.json
-# tasks/ 
+# tasks/

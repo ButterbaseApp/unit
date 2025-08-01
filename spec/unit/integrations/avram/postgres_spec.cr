@@ -3,27 +3,26 @@ require "../../../../src/unit/integrations/avram"
 
 # Test migration with PostgreSQL helpers
 class TestPostgresMigration < AvramSpecHelper::TestMigration
-  
   # Manually implement what add_measurement_column_postgres macro would generate
   def add_measurement_column_postgres(table, name, type, **options)
     precision = options[:precision]? || 20
     scale = options[:scale]? || 10
-    
+
     # Use NUMERIC for better precision with measurements
     # We have to use case statement since we can't dynamically create symbols
     case name
     when :weight
       add :weight_value, "NUMERIC(#{precision}, #{scale})"
       add :weight_unit, String, size: options[:unit_size]? || 20
-      
+
       if options[:required]?
         change_null :weight_value, false
         change_null :weight_unit, false
       end
-      
+
       default_value = options[:default_value]?
       default_unit = options[:default_unit]?
-      
+
       if default_value && default_unit
         change_default :weight_value, default_value
         change_default :weight_unit, default_unit.to_s
@@ -31,15 +30,15 @@ class TestPostgresMigration < AvramSpecHelper::TestMigration
     when :price
       add :price_value, "NUMERIC(#{precision}, #{scale})"
       add :price_unit, String, size: options[:unit_size]? || 20
-      
+
       if options[:required]?
         change_null :price_value, false
         change_null :price_unit, false
       end
-      
+
       default_value = options[:default_value]?
       default_unit = options[:default_unit]?
-      
+
       if default_value && default_unit
         change_default :price_value, default_value
         change_default :price_unit, default_unit.to_s
@@ -49,30 +48,30 @@ class TestPostgresMigration < AvramSpecHelper::TestMigration
       # In a real macro this would be handled at compile time
       # Ensure options hash has the right type
       value_options = Hash(Symbol, String | Int32 | Bool).new
-      
+
       unit_options = Hash(Symbol, String | Int32 | Bool).new
       unit_size = options[:unit_size]? || 20
       unit_options[:size] = unit_size.as(String | Int32 | Bool)
-      
+
       @columns << {
-        name: "#{name}_value",
-        type: "NUMERIC(#{precision}, #{scale})",
-        options: value_options
+        name:    "#{name}_value",
+        type:    "NUMERIC(#{precision}, #{scale})",
+        options: value_options,
       }
       @columns << {
-        name: "#{name}_unit",
-        type: "String",
-        options: unit_options
+        name:    "#{name}_unit",
+        type:    "String",
+        options: unit_options,
       }
-      
+
       if options[:required]?
         @executed_sql << "ALTER COLUMN #{name}_value SET NOT NULL"
         @executed_sql << "ALTER COLUMN #{name}_unit SET NOT NULL"
       end
-      
+
       default_value = options[:default_value]?
       default_unit = options[:default_unit]?
-      
+
       if default_value && default_unit
         @executed_sql << "ALTER COLUMN #{name}_value SET DEFAULT #{default_value}"
         @executed_sql << "ALTER COLUMN #{name}_unit SET DEFAULT '#{default_unit}'"
@@ -111,7 +110,7 @@ class TestPostgresMigration < AvramSpecHelper::TestMigration
     # Add composite index for range queries
     if options[:indexed]?
       add_index table, [:"#{name}_value", :"#{name}_unit"]
-      
+
       # Add GiST index for range queries if requested
       if options[:gist_index]?
         execute <<-SQL
@@ -141,12 +140,12 @@ class TestPostgresMigration < AvramSpecHelper::TestMigration
 
       # Index the normalized column for fast queries
       @indexes << {
-        table: table.to_s,
-        columns: ["#{name}_normalized"]
+        table:   table.to_s,
+        columns: ["#{name}_normalized"],
       }
     end
   end
-  
+
   # Helper methods
   private def generate_unit_enum_values(type)
     case type
@@ -160,7 +159,7 @@ class TestPostgresMigration < AvramSpecHelper::TestMigration
       "'unknown'"
     end
   end
-  
+
   private def generate_unit_conversion_cases(type)
     case type
     when :Weight
@@ -182,7 +181,7 @@ class TestPostgresMigration < AvramSpecHelper::TestMigration
       "WHEN 'unknown' THEN 1"
     end
   end
-  
+
   # Implement create_measurement_aggregation_function
   def create_measurement_aggregation_function(type)
     execute <<-SQL
@@ -223,12 +222,12 @@ describe "Unit::Avram PostgreSQL Features" do
     describe "add_measurement_column_postgres" do
       it "uses NUMERIC type for better precision" do
         migration = TestPostgresMigration.new
-        
+
         migration.add_measurement_column_postgres :products, :weight, :Weight
-        
+
         # Check columns were added
         migration.columns.size.should eq(2)
-        
+
         value_column = migration.columns.find { |c| c[:name] == "weight_value" }
         value_column.should_not be_nil
         value_column.not_nil![:type].should contain("NUMERIC(20, 10)")
@@ -236,25 +235,25 @@ describe "Unit::Avram PostgreSQL Features" do
 
       it "supports custom precision and scale" do
         migration = TestPostgresMigration.new
-        
+
         migration.add_measurement_column_postgres :products, :price, :Price,
           precision: 30,
           scale: 15
-        
+
         value_column = migration.columns.find { |c| c[:name] == "price_value" }
         value_column.not_nil![:type].should contain("NUMERIC(30, 15)")
       end
 
       it "creates enum type by default" do
         migration = TestPostgresMigration.new
-        
+
         migration.add_measurement_column_postgres :products, :weight, :Weight
-        
+
         # Check for enum creation
         enum_sql = migration.executed_sql.find { |sql| sql.includes?("CREATE TYPE") }
         enum_sql.should_not be_nil
         enum_sql.not_nil!.should contain("weight_unit_enum AS ENUM")
-        
+
         # Check for ALTER COLUMN to use enum
         alter_sql = migration.executed_sql.find { |sql| sql.includes?("ALTER COLUMN weight_unit TYPE") }
         alter_sql.should_not be_nil
@@ -263,14 +262,14 @@ describe "Unit::Avram PostgreSQL Features" do
 
       it "skips enum creation when create_enum is false" do
         migration = TestPostgresMigration.new
-        
+
         migration.add_measurement_column_postgres :products, :weight, :Weight,
           create_enum: false
-        
+
         # Should not create enum
         enum_sql = migration.executed_sql.find { |sql| sql.includes?("CREATE TYPE") }
         enum_sql.should be_nil
-        
+
         # Should use check constraint instead
         check_sql = migration.executed_sql.find { |sql| sql.includes?("CHECK") }
         check_sql.should_not be_nil
@@ -278,14 +277,14 @@ describe "Unit::Avram PostgreSQL Features" do
 
       it "creates GiST index when requested" do
         migration = TestPostgresMigration.new
-        
+
         migration.add_measurement_column_postgres :products, :weight, :Weight,
           indexed: true,
           gist_index: true
-        
+
         # Should create regular index
         migration.indexes.size.should eq(1)
-        
+
         # Should create GiST index
         gist_sql = migration.executed_sql.find { |sql| sql.includes?("USING gist") }
         gist_sql.should_not be_nil
@@ -294,16 +293,16 @@ describe "Unit::Avram PostgreSQL Features" do
 
       it "adds normalized column when requested" do
         migration = TestPostgresMigration.new
-        
+
         migration.add_measurement_column_postgres :products, :weight, :Weight,
           add_normalized_column: true
-        
+
         # Should create generated column
         generated_sql = migration.executed_sql.find { |sql| sql.includes?("GENERATED ALWAYS AS") }
         generated_sql.should_not be_nil
         generated_sql.not_nil!.should contain("weight_normalized")
         generated_sql.not_nil!.should contain("CASE weight_unit")
-        
+
         # Should index normalized column
         migration.indexes.any? { |idx| idx[:columns].includes?("weight_normalized") }.should be_true
       end
@@ -312,9 +311,9 @@ describe "Unit::Avram PostgreSQL Features" do
     describe "create_measurement_aggregation_function" do
       it "creates PostgreSQL function for measurement aggregation" do
         migration = TestPostgresMigration.new
-        
+
         migration.create_measurement_aggregation_function :Weight
-        
+
         # Check function creation SQL
         function_sql = migration.executed_sql.find { |sql| sql.includes?("CREATE OR REPLACE FUNCTION") }
         function_sql.should_not be_nil
@@ -339,18 +338,18 @@ describe "Unit::Avram PostgreSQL Features" do
       it "serializes and deserializes measurements correctly" do
         # Test the expected behavior of JSONB storage
         weight = Unit::Weight.new(25.5, :kilogram)
-        
+
         # Expected JSON structure
         expected_json = {
-          "type" => "Weight",
-          "value" => "25.5",
-          "unit" => "kilogram",
-          "normalized" => "25500" # 25.5 kg = 25500 g
+          "type"       => "Weight",
+          "value"      => "25.5",
+          "unit"       => "kilogram",
+          "normalized" => "25500", # 25.5 kg = 25500 g
         }
-        
+
         # The to_db method should produce this structure
         # The parse method should reconstruct the measurement
-        
+
         # Verify the expected structure matches our design
         expected_json["type"].should eq("Weight")
         expected_json["value"].should eq("25.5")
@@ -363,9 +362,9 @@ describe "Unit::Avram PostgreSQL Features" do
         measurements = {
           "Weight" => Unit::Weight.new(10, :kilogram),
           "Length" => Unit::Length.new(2.5, :meter),
-          "Volume" => Unit::Volume.new(1.5, :liter)
+          "Volume" => Unit::Volume.new(1.5, :liter),
         }
-        
+
         measurements.each do |type_name, measurement|
           # Each measurement should be serializable with its type name
           measurement.class.name.should contain(type_name)

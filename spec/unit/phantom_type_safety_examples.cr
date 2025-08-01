@@ -1,5 +1,5 @@
 # Phantom Type Safety Examples
-# 
+#
 # This file demonstrates how phantom types in the Measurement class
 # provide compile-time type safety. The examples below would cause
 # compilation errors if uncommented.
@@ -8,7 +8,9 @@ require "../../src/unit/measurement"
 
 # Define phantom type markers
 struct Weight; end
+
 struct Length; end
+
 struct Temperature; end
 
 enum WeightUnit

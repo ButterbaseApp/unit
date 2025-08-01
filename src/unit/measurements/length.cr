@@ -35,15 +35,15 @@ module Unit
       Centimeter
       Millimeter
       Kilometer
-      
+
       # Imperial units
       Inch
       Foot
       Yard
       Mile
-      
+
       # Common aliases for convenience
-      M = Meter
+      M  = Meter
       Cm = Centimeter
       Mm = Millimeter
       Km = Kilometer
@@ -51,7 +51,7 @@ module Unit
       Ft = Foot
       Yd = Yard
       Mi = Mile
-      
+
       # Returns true if this unit is part of the metric system
       def metric?
         case self
@@ -61,7 +61,7 @@ module Unit
           false
         end
       end
-      
+
       # Returns the standard symbol for this unit
       def symbol
         case self
@@ -85,33 +85,33 @@ module Unit
           to_s.downcase
         end
       end
-      
+
       # Returns the full name with proper pluralization
       def name(plural = false)
         base_name = case self
-                   when .meter?
-                     "meter"
-                   when .centimeter?
-                     "centimeter"
-                   when .millimeter?
-                     "millimeter"
-                   when .kilometer?
-                     "kilometer"
-                   when .inch?
-                     "inch"
-                   when .foot?
-                     "foot"
-                   when .yard?
-                     "yard"
-                   when .mile?
-                     "mile"
-                   else
-                     to_s.downcase
-                   end
-        
+                    when .meter?
+                      "meter"
+                    when .centimeter?
+                      "centimeter"
+                    when .millimeter?
+                      "millimeter"
+                    when .kilometer?
+                      "kilometer"
+                    when .inch?
+                      "inch"
+                    when .foot?
+                      "foot"
+                    when .yard?
+                      "yard"
+                    when .mile?
+                      "mile"
+                    else
+                      to_s.downcase
+                    end
+
         plural ? pluralize(base_name) : base_name
       end
-      
+
       private def pluralize(name)
         case name
         when "foot"
@@ -123,7 +123,7 @@ module Unit
         end
       end
     end
-    
+
     # Conversion factors to meters (base unit)
     #
     # All values are stored as BigDecimal for maximum precision
@@ -133,18 +133,18 @@ module Unit
       Unit::Centimeter => BigDecimal.new("0.01"),
       Unit::Millimeter => BigDecimal.new("0.001"),
       Unit::Kilometer  => BigDecimal.new("1000"),
-      Unit::Inch       => BigDecimal.new("0.0254"),        # Exact conversion (international inch)
-      Unit::Foot       => BigDecimal.new("0.3048"),        # Exact conversion (international foot)
-      Unit::Yard       => BigDecimal.new("0.9144"),        # Exact conversion (3 feet)
-      Unit::Mile       => BigDecimal.new("1609.344"),      # Exact conversion (5280 feet)
+      Unit::Inch       => BigDecimal.new("0.0254"),   # Exact conversion (international inch)
+      Unit::Foot       => BigDecimal.new("0.3048"),   # Exact conversion (international foot)
+      Unit::Yard       => BigDecimal.new("0.9144"),   # Exact conversion (3 feet)
+      Unit::Mile       => BigDecimal.new("1609.344"), # Exact conversion (5280 feet)
     }
-    
+
     # Value stored as BigDecimal for precision
     getter value : BigDecimal
-    
+
     # Unit of measurement
     getter unit : Unit
-    
+
     # Creates a new length with the given value and unit
     def initialize(value : Number, @unit : Unit)
       # Handle Float edge cases before conversion
@@ -152,7 +152,7 @@ module Unit
         raise ArgumentError.new("Value cannot be NaN") if value.nan?
         raise ArgumentError.new("Value cannot be infinite") if value.infinite?
       end
-      
+
       # Handle BigRational which needs special conversion
       @value = case value
                when BigRational
@@ -162,58 +162,57 @@ module Unit
                end
       validate_value!
     end
-    
+
     # Returns the base unit for length measurements (meter)
     def self.base_unit
       Unit::Meter
     end
-    
+
     # Returns the conversion factor for the given unit
     def self.conversion_factor(unit : Unit)
       CONVERSION_FACTORS[unit]
     end
-    
+
     # Returns true if the given unit is metric
     def self.metric_unit?(unit : Unit)
       unit.metric?
     end
-    
+
     # Returns the symbol for this length's unit
     def symbol
       @unit.symbol
     end
-    
+
     # Returns the name of this length's unit
     def unit_name(plural = false)
       @unit.name(plural)
     end
-    
+
     # Returns a readable string representation of the measurement
     def to_s(io : IO) : Nil
       io << @value << " " << @unit.to_s.downcase
     end
-    
+
     # Returns a detailed string representation for debugging
     def inspect(io : IO) : Nil
       io << "Length(" << @value << ", " << @unit << ")"
     end
-    
-    
+
     private def validate_value!
       # Crystal's type system prevents nil values, but check for edge cases
-      
+
       # Check for zero value in string representation which might indicate conversion issues
       value_str = @value.to_s
-      
+
       # Validate that the BigDecimal conversion was successful
       # BigDecimal should never be in an invalid state after successful construction
       raise ArgumentError.new("Invalid measurement value") if value_str.empty?
-      
+
       # Optional: Add domain-specific validation rules
       # For example, physical measurements might want to reject negative values
       # This is left flexible for subclasses or specific measurement types
     end
-    
+
     # JSON serialization support
     def to_json(json : JSON::Builder) : Nil
       json.object do
@@ -225,7 +224,7 @@ module Unit
         end
       end
     end
-    
+
     # YAML serialization support
     def to_yaml(yaml : YAML::Nodes::Builder) : Nil
       yaml.mapping do
@@ -235,13 +234,13 @@ module Unit
         EnumConverter(Unit).to_yaml(@unit, yaml)
       end
     end
-    
+
     # JSON deserialization
     def self.from_json(string_or_io) : self
       parser = JSON::PullParser.new(string_or_io)
       value = nil
       unit = nil
-      
+
       parser.read_object do |key|
         case key
         when "value"
@@ -252,23 +251,23 @@ module Unit
           parser.skip
         end
       end
-      
+
       raise JSON::ParseException.new("Missing 'value' field", 0, 0) unless value
       raise JSON::ParseException.new("Missing 'unit' field", 0, 0) unless unit
-      
+
       new(value, unit)
     end
-    
+
     # YAML deserialization
     def self.from_yaml(string_or_io) : self
       yaml = YAML.parse(string_or_io)
-      
+
       value_any = yaml["value"]?
       unit_str = yaml["unit"]?.try(&.as_s?)
-      
+
       raise YAML::ParseException.new("Missing 'value' field", 0, 0) unless value_any
       raise YAML::ParseException.new("Missing 'unit' field", 0, 0) unless unit_str
-      
+
       # Handle both string and number values
       value = case value_any
               when .as_s?
@@ -280,7 +279,7 @@ module Unit
               else
                 raise YAML::ParseException.new("Invalid 'value' field type", 0, 0)
               end
-      
+
       # Parse unit with case-insensitive support
       unit = Unit.parse?(unit_str) || begin
         normalized = unit_str.downcase
@@ -288,12 +287,12 @@ module Unit
           break enum_value if enum_value.to_s.downcase == normalized
         end
       end
-      
+
       unless unit.is_a?(Unit)
         valid_values = Unit.values.map(&.to_s).join(", ")
         raise YAML::ParseException.new("Invalid unit value: '#{unit_str}'. Valid values are: #{valid_values}", 0, 0)
       end
-      
+
       new(value, unit)
     end
   end

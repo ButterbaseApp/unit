@@ -18,7 +18,7 @@ module Unit
       unless node.is_a?(YAML::Nodes::Scalar)
         node.raise "Expected scalar, not #{node.class}"
       end
-      
+
       BigDecimal.new(node.value)
     rescue ex : ArgumentError
       node.raise "Invalid decimal value: #{ex.message}"

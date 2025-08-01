@@ -355,10 +355,11 @@ module Unit
           $$ LANGUAGE plpgsql IMMUTABLE;
         SQL
       end
-    # PostgreSQL-specific query extensions
-    module PostgreSQLExtensions
-      # Use PostgreSQL's numeric operations for better precision
-      macro measurement_sum(column_name, type, target_unit)
+
+      # PostgreSQL-specific query extensions
+      module PostgreSQLExtensions
+        # Use PostgreSQL's numeric operations for better precision
+        macro measurement_sum(column_name, type, target_unit)
         select_append <<-SQL
           sum_{{type.downcase}}_measurements(
             array_agg({{column_name}}_value),
@@ -368,8 +369,8 @@ module Unit
         SQL
       end
 
-      # Average with proper unit handling
-      macro measurement_avg(column_name, type, target_unit)
+        # Average with proper unit handling
+        macro measurement_avg(column_name, type, target_unit)
         select_append <<-SQL
           sum_{{type.downcase}}_measurements(
             array_agg({{column_name}}_value),
@@ -379,79 +380,79 @@ module Unit
         SQL
       end
 
-      # Use normalized column if available for faster queries
-      macro with_normalized_greater_than(column_name, measurement)
+        # Use normalized column if available for faster queries
+        macro with_normalized_greater_than(column_name, measurement)
         normalized_value = {{measurement}}.convert_to({{measurement}}.class.base_unit).value
         where("{{column_name}}_normalized > ?", normalized_value)
       end
 
-      macro with_normalized_between(column_name, min, max)
+        macro with_normalized_between(column_name, min, max)
         min_normalized = {{min}}.convert_to({{min}}.class.base_unit).value
         max_normalized = {{max}}.convert_to({{max}}.class.base_unit).value
         where("{{column_name}}_normalized BETWEEN ? AND ?", min_normalized, max_normalized)
       end
-    end
-
-    # JSONB storage type for flexible measurement storage
-    module MeasurementJSONBType
-      include ::Avram::Type
-      alias ColumnType = JSON::Any
-
-      def self.criteria(query : T, column) forall T
-        ::Avram::Criteria(T, JSON::Any).new(query, column)
       end
 
-      def parse(value : JSON::Any)
-        return SuccessfulCast(Nil).new(nil) if value.nil?
-        
-        # Determine measurement type from stored type field
-        measurement_type = value["type"].as_s
-        parsed_value = BigDecimal.new(value["value"].as_s)
-        unit_str = value["unit"].as_s
+      # JSONB storage type for flexible measurement storage
+      module MeasurementJSONBType
+        include ::Avram::Type
+        alias ColumnType = JSON::Any
 
-        measurement = case measurement_type
-        when "Weight"
-          Unit::Weight.new(parsed_value, Unit::Weight::Unit.parse(unit_str))
-        when "Length"
-          Unit::Length.new(parsed_value, Unit::Length::Unit.parse(unit_str))
-        when "Volume"
-          Unit::Volume.new(parsed_value, Unit::Volume::Unit.parse(unit_str))
-        else
-          return FailedCast.new
+        def self.criteria(query : T, column) forall T
+          ::Avram::Criteria(T, JSON::Any).new(query, column)
         end
-        
-        # Return the correct type based on what was parsed
-        case measurement
-        when Unit::Weight
-          SuccessfulCast(Unit::Weight).new(measurement)
-        when Unit::Length
-          SuccessfulCast(Unit::Length).new(measurement)
-        when Unit::Volume
-          SuccessfulCast(Unit::Volume).new(measurement)
-        else
+
+        def parse(value : JSON::Any)
+          return SuccessfulCast(Nil).new(nil) if value.nil?
+
+          # Determine measurement type from stored type field
+          measurement_type = value["type"].as_s
+          parsed_value = BigDecimal.new(value["value"].as_s)
+          unit_str = value["unit"].as_s
+
+          measurement = case measurement_type
+                        when "Weight"
+                          Unit::Weight.new(parsed_value, Unit::Weight::Unit.parse(unit_str))
+                        when "Length"
+                          Unit::Length.new(parsed_value, Unit::Length::Unit.parse(unit_str))
+                        when "Volume"
+                          Unit::Volume.new(parsed_value, Unit::Volume::Unit.parse(unit_str))
+                        else
+                          return FailedCast.new
+                        end
+
+          # Return the correct type based on what was parsed
+          case measurement
+          when Unit::Weight
+            SuccessfulCast(Unit::Weight).new(measurement)
+          when Unit::Length
+            SuccessfulCast(Unit::Length).new(measurement)
+          when Unit::Volume
+            SuccessfulCast(Unit::Volume).new(measurement)
+          else
+            FailedCast.new
+          end
+        rescue
           FailedCast.new
         end
-      rescue
-        FailedCast.new
-      end
 
-      def to_db(value : Unit::Measurement) : JSON::Any
-        JSON::Any.new({
-          "type" => value.class.name.split("::").last,
-          "value" => value.value.to_s,
-          "unit" => value.unit.to_s.downcase,
-          "normalized" => value.convert_to(value.class.base_unit).value.to_s
-        })
-      end
+        def to_db(value : Unit::Measurement) : JSON::Any
+          JSON::Any.new({
+            "type"       => value.class.name.split("::").last,
+            "value"      => value.value.to_s,
+            "unit"       => value.unit.to_s.downcase,
+            "normalized" => value.convert_to(value.class.base_unit).value.to_s,
+          })
+        end
 
-      def to_db(value : Nil)
-        nil
-      end
+        def to_db(value : Nil)
+          nil
+        end
 
-      def from_db!(value : JSON::Any)
-        parse!(value)
+        def from_db!(value : JSON::Any)
+          parse!(value)
+        end
       end
-    end
     end
   end
 end

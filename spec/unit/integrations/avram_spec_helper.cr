@@ -7,7 +7,7 @@ module Avram
     macro included
       extend self
     end
-    
+
     class SuccessfulCast(T)
       getter :value
 
@@ -43,7 +43,7 @@ module AvramSpecHelper
   class TestModel
     property id : Int64?
     property name : String?
-    
+
     # Simulated measurement storage
     property weight_value : Float64?
     property weight_unit : String?
@@ -84,12 +84,12 @@ module AvramSpecHelper
   # Mock operation for testing validations
   class TestOperation
     alias ErrorMessage = String
-    
+
     property errors = Hash(Symbol, Array(ErrorMessage)).new { |h, k| h[k] = [] of ErrorMessage }
     # Use a union of specific measurement types instead of the generic
     alias MeasurementTypes = Unit::Weight | Unit::Length | Unit::Volume | Nil
     property values = Hash(Symbol, MeasurementTypes).new
-    
+
     def initialize
     end
 
@@ -141,11 +141,11 @@ module AvramSpecHelper
       options.each do |k, v|
         typed_options[k] = v.as(String | Int32 | Bool)
       end
-      
+
       @columns << {
-        name: name.to_s,
-        type: type.to_s,
-        options: typed_options
+        name:    name.to_s,
+        type:    type.to_s,
+        options: typed_options,
       }
     end
 
@@ -155,11 +155,11 @@ module AvramSpecHelper
       options.each do |k, v|
         typed_options[k] = v.as(String | Int32 | Bool)
       end
-      
+
       @columns << {
-        name: name.to_s,
-        type: type,
-        options: typed_options
+        name:    name.to_s,
+        type:    type,
+        options: typed_options,
       }
     end
 
@@ -177,15 +177,15 @@ module AvramSpecHelper
 
     def add_index(table : Symbol, columns : Array(Symbol))
       @indexes << {
-        table: table.to_s,
-        columns: columns.map(&.to_s)
+        table:   table.to_s,
+        columns: columns.map(&.to_s),
       }
     end
 
     def create_index(table, column : Symbol)
       @indexes << {
-        table: table.to_s,
-        columns: [column.to_s]
+        table:   table.to_s,
+        columns: [column.to_s],
       }
     end
 

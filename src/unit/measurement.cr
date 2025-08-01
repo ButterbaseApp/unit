@@ -39,11 +39,11 @@ module Unit
   # # Creating measurements
   # weight = Unit::Weight.new(5.5, :kilogram)
   # length = Unit::Length.new(100, :centimeter)
-  # 
+  #
   # # Converting units
   # pounds = weight.convert_to(:pound)
   # meters = length.to(:meter)
-  # 
+  #
   # # Arithmetic operations
   # total = weight + Unit::Weight.new(10, :pound)
   # double = weight * 2
@@ -52,23 +52,23 @@ module Unit
     include Arithmetic
     include Conversion
     include Formatter
-    
+
     # The numeric value of the measurement, stored as BigDecimal for precision.
     #
     # ```
     # weight = Unit::Weight.new(5.5, :kilogram)
-    # weight.value  # => BigDecimal("5.5")
+    # weight.value # => BigDecimal("5.5")
     # ```
     getter value : BigDecimal
-    
+
     # The unit of measurement as an enum value.
     #
     # ```
     # weight = Unit::Weight.new(5.5, :kilogram)
-    # weight.unit  # => Unit::Weight::Unit::Kilogram
+    # weight.unit # => Unit::Weight::Unit::Kilogram
     # ```
     getter unit : U
-    
+
     # Creates a new measurement with the given value and unit.
     #
     # The value is automatically converted to `BigDecimal` for precision preservation.
@@ -83,14 +83,14 @@ module Unit
     # ```
     # # Using enum values
     # Unit::Weight.new(10, Unit::Weight::Unit::Kilogram)
-    # 
+    #
     # # Using symbols (convenient shorthand)
     # Unit::Weight.new(10, :kilogram)
-    # 
+    #
     # # Various numeric types
-    # Unit::Weight.new(10_i32, :kilogram)      # Int32
-    # Unit::Weight.new(10.5_f64, :kilogram)    # Float64
-    # Unit::Weight.new(BigDecimal.new("10.5"), :kilogram)  # BigDecimal
+    # Unit::Weight.new(10_i32, :kilogram)                 # Int32
+    # Unit::Weight.new(10.5_f64, :kilogram)               # Float64
+    # Unit::Weight.new(BigDecimal.new("10.5"), :kilogram) # BigDecimal
     # ```
     #
     # ## Raises
@@ -102,7 +102,7 @@ module Unit
         raise ArgumentError.new("Value cannot be NaN") if value.nan?
         raise ArgumentError.new("Value cannot be infinite") if value.infinite?
       end
-      
+
       # Handle BigRational which needs special conversion
       @value = case value
                when BigRational
@@ -112,8 +112,7 @@ module Unit
                end
       validate_value!
     end
-    
-    
+
     # Returns a detailed string representation for debugging.
     #
     # Shows the measurement's type parameters and internal structure, useful for
@@ -121,13 +120,13 @@ module Unit
     #
     # ```
     # weight = Unit::Weight.new(5.5, :kilogram)
-    # weight.inspect  # => "Measurement(Unit::Weight, Unit::Weight::Unit)(5.5, Kilogram)"
+    # weight.inspect # => "Measurement(Unit::Weight, Unit::Weight::Unit)(5.5, Kilogram)"
     # ```
     def inspect(io : IO) : Nil
       io << "Measurement(" << T << ", " << U << ")"
       io << "(" << @value << ", " << @unit << ")"
     end
-    
+
     # Compares two measurements for equality.
     #
     # Two measurements are considered equal if they have the same value and unit.
@@ -140,14 +139,14 @@ module Unit
     # kg1 = Unit::Weight.new(1, :kilogram)
     # kg2 = Unit::Weight.new(1, :kilogram)
     # g1000 = Unit::Weight.new(1000, :gram)
-    # 
-    # kg1 == kg2    # => true (same value and unit)
-    # kg1 == g1000  # => false (different units, use comparison operators instead)
+    #
+    # kg1 == kg2   # => true (same value and unit)
+    # kg1 == g1000 # => false (different units, use comparison operators instead)
     # ```
     def ==(other : Measurement(T, U)) : Bool
       @value == other.value && @unit == other.unit
     end
-    
+
     # Generates a hash value for use in Hash collections.
     #
     # The hash is based on both the value and unit to maintain consistency
@@ -163,22 +162,22 @@ module Unit
       hasher = @unit.hash(hasher)
       hasher
     end
-    
+
     private def validate_value!
       # Crystal's type system prevents nil values, but check for edge cases
-      
+
       # Check for zero value in string representation which might indicate conversion issues
       value_str = @value.to_s
-      
+
       # Validate that the BigDecimal conversion was successful
       # BigDecimal should never be in an invalid state after successful construction
       raise ArgumentError.new("Invalid measurement value") if value_str.empty?
-      
+
       # Optional: Add domain-specific validation rules
       # For example, physical measurements might want to reject negative values
       # This is left flexible for subclasses or specific measurement types
     end
-    
+
     # Serializes the measurement to JSON format.
     #
     # The value is stored as a string to preserve BigDecimal precision,
@@ -186,7 +185,7 @@ module Unit
     #
     # ```
     # weight = Unit::Weight.new(5.5, :kilogram)
-    # weight.to_json  # => {"value":"5.5","unit":"kilogram"}
+    # weight.to_json # => {"value":"5.5","unit":"kilogram"}
     # ```
     def to_json(json : JSON::Builder) : Nil
       json.object do
@@ -198,7 +197,7 @@ module Unit
         end
       end
     end
-    
+
     # Serializes the measurement to YAML format.
     #
     # The value is stored as a string to preserve BigDecimal precision,
@@ -206,7 +205,7 @@ module Unit
     #
     # ```
     # weight = Unit::Weight.new(5.5, :kilogram)
-    # weight.to_yaml  # => "---\nvalue: '5.5'\nunit: kilogram\n"
+    # weight.to_yaml # => "---\nvalue: '5.5'\nunit: kilogram\n"
     # ```
     def to_yaml(yaml : YAML::Nodes::Builder) : Nil
       yaml.mapping do

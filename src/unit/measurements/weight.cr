@@ -35,15 +35,15 @@ module Unit
   # weight = Unit::Weight.new(10.5, :kilogram)
   # heavy = Unit::Weight.new(1, :tonne)
   # light = Unit::Weight.new(500, :gram)
-  # 
+  #
   # # Converting between units
-  # pounds = weight.convert_to(:pound)    # => 23.15 lb
-  # grams = weight.to(:gram)              # => 10500 g
-  # 
+  # pounds = weight.convert_to(:pound) # => 23.15 lb
+  # grams = weight.to(:gram)           # => 10500 g
+  #
   # # Arithmetic operations
   # total = weight + Unit::Weight.new(5, :pound)
   # doubled = weight * 2
-  # 
+  #
   # # Parsing from strings
   # parsed = Unit::Parser.parse("2.5 kg", Unit::Weight)
   # ```
@@ -64,9 +64,9 @@ module Unit
     # ## Usage
     #
     # ```
-    # Unit::Weight::Unit::Kilogram  # Full enum reference
-    # :kilogram                     # Symbol shorthand in constructors
-    # Unit::Weight::Unit::Kg        # Alias
+    # Unit::Weight::Unit::Kilogram # Full enum reference
+    # :kilogram                    # Symbol shorthand in constructors
+    # Unit::Weight::Unit::Kg       # Alias
     # ```
     enum Unit
       # Metric units
@@ -74,20 +74,20 @@ module Unit
       Kilogram
       Milligram
       Tonne
-      
+
       # Imperial units
       Pound
       Ounce
       Slug
-      
+
       # Common aliases for convenience
-      G = Gram
+      G  = Gram
       Kg = Kilogram
       Mg = Milligram
-      T = Tonne
+      T  = Tonne
       Lb = Pound
       Oz = Ounce
-      
+
       # Returns true if this unit is part of the metric system
       def metric?
         case self
@@ -97,7 +97,7 @@ module Unit
           false
         end
       end
-      
+
       # Returns the standard symbol for this unit
       def symbol
         case self
@@ -119,31 +119,31 @@ module Unit
           to_s.downcase
         end
       end
-      
+
       # Returns the full name with proper pluralization
       def name(plural = false)
         base_name = case self
-                   when .gram?
-                     "gram"
-                   when .kilogram?
-                     "kilogram"
-                   when .milligram?
-                     "milligram"
-                   when .tonne?
-                     "tonne"
-                   when .pound?
-                     "pound"
-                   when .ounce?
-                     "ounce"
-                   when .slug?
-                     "slug"
-                   else
-                     to_s.downcase
-                   end
-        
+                    when .gram?
+                      "gram"
+                    when .kilogram?
+                      "kilogram"
+                    when .milligram?
+                      "milligram"
+                    when .tonne?
+                      "tonne"
+                    when .pound?
+                      "pound"
+                    when .ounce?
+                      "ounce"
+                    when .slug?
+                      "slug"
+                    else
+                      to_s.downcase
+                    end
+
         plural ? pluralize(base_name) : base_name
       end
-      
+
       private def pluralize(name)
         case name
         when "foot"
@@ -155,7 +155,7 @@ module Unit
         end
       end
     end
-    
+
     # Conversion factors to grams (base unit)
     #
     # All values are stored as BigDecimal for maximum precision
@@ -165,30 +165,30 @@ module Unit
       Unit::Kilogram  => BigDecimal.new("1000"),
       Unit::Milligram => BigDecimal.new("0.001"),
       Unit::Tonne     => BigDecimal.new("1000000"),
-      Unit::Pound     => BigDecimal.new("453.59237"),        # Exact conversion
-      Unit::Ounce     => BigDecimal.new("28.349523125"),     # Exact conversion (1/16 lb)
-      Unit::Slug      => BigDecimal.new("14593.903"),        # Based on 1 slug = 32.174 lb
+      Unit::Pound     => BigDecimal.new("453.59237"),    # Exact conversion
+      Unit::Ounce     => BigDecimal.new("28.349523125"), # Exact conversion (1/16 lb)
+      Unit::Slug      => BigDecimal.new("14593.903"),    # Based on 1 slug = 32.174 lb
     }
-    
+
     # The numeric value of the weight measurement, stored as BigDecimal for precision
     getter value : BigDecimal
-    
+
     # The unit of this weight measurement
     getter unit : Unit
-    
+
     # Creates a new weight measurement with the given value and unit.
     #
     # ```
     # # Using symbols (recommended)
     # weight = Unit::Weight.new(5.5, :kilogram)
-    # 
+    #
     # # Using enum values
     # weight = Unit::Weight.new(10, Unit::Weight::Unit::Pound)
-    # 
+    #
     # # Various numeric types supported
-    # Unit::Weight.new(100, :gram)                    # Int32
-    # Unit::Weight.new(2.5, :kilogram)                # Float64
-    # Unit::Weight.new(BigDecimal.new("0.001"), :tonne)  # BigDecimal
+    # Unit::Weight.new(100, :gram)                      # Int32
+    # Unit::Weight.new(2.5, :kilogram)                  # Float64
+    # Unit::Weight.new(BigDecimal.new("0.001"), :tonne) # BigDecimal
     # ```
     #
     # @param value The numeric value (any Number type)
@@ -200,7 +200,7 @@ module Unit
         raise ArgumentError.new("Value cannot be NaN") if value.nan?
         raise ArgumentError.new("Value cannot be infinite") if value.infinite?
       end
-      
+
       # Handle BigRational which needs special conversion
       @value = case value
                when BigRational
@@ -210,77 +210,76 @@ module Unit
                end
       validate_value!
     end
-    
+
     # Returns the base unit for weight measurements.
     #
     # All weight conversions go through gram as the base unit to ensure
     # consistency and minimize compound conversion errors.
     #
     # ```
-    # Unit::Weight.base_unit  # => Unit::Weight::Unit::Gram
+    # Unit::Weight.base_unit # => Unit::Weight::Unit::Gram
     # ```
     def self.base_unit
       Unit::Gram
     end
-    
+
     # Returns the conversion factor to grams for the given unit.
     #
     # This factor represents how many grams are in one unit of the given type.
     #
     # ```
-    # Unit::Weight.conversion_factor(Unit::Weight::Unit::Kilogram)  # => BigDecimal("1000")
-    # Unit::Weight.conversion_factor(:pound)                        # => BigDecimal("453.59237")
+    # Unit::Weight.conversion_factor(Unit::Weight::Unit::Kilogram) # => BigDecimal("1000")
+    # Unit::Weight.conversion_factor(:pound)                       # => BigDecimal("453.59237")
     # ```
     def self.conversion_factor(unit : Unit)
       CONVERSION_FACTORS[unit]
     end
-    
+
     # Checks if the given unit is part of the metric system.
     #
     # ```
-    # Unit::Weight.metric_unit?(:kilogram)  # => true
-    # Unit::Weight.metric_unit?(:pound)     # => false
+    # Unit::Weight.metric_unit?(:kilogram) # => true
+    # Unit::Weight.metric_unit?(:pound)    # => false
     # ```
     def self.metric_unit?(unit : Unit)
       unit.metric?
     end
-    
+
     # Returns the symbol for this weight's unit
     def symbol
       @unit.symbol
     end
-    
+
     # Returns the name of this weight's unit
     def unit_name(plural = false)
       @unit.name(plural)
     end
-    
+
     # Returns a readable string representation of the measurement
     def to_s(io : IO) : Nil
       io << @value << " " << @unit.to_s.downcase
     end
-    
+
     # Returns a detailed string representation for debugging
     def inspect(io : IO) : Nil
       io << "Weight(" << @value << ", " << @unit << ")"
     end
-    
-    
+
     private def validate_value!
       # Crystal's type system prevents nil values, but check for edge cases
-      
+
       # Check for zero value in string representation which might indicate conversion issues
       value_str = @value.to_s
-      
+
       # Validate that the BigDecimal conversion was successful
       # BigDecimal should never be in an invalid state after successful construction
       raise ArgumentError.new("Invalid measurement value") if value_str.empty?
-      
+
       # Optional: Add domain-specific validation rules
       # For example, physical measurements might want to reject negative values
       # This is left flexible for subclasses or specific measurement types
     end
-    
+
     # JSON serialization support
     def to_json(json : JSON::Builder) : Nil
       json.object do
@@ -292,7 +291,7 @@ module Unit
         end
       end
     end
-    
+
     # YAML serialization support
     def to_yaml(yaml : YAML::Nodes::Builder) : Nil
       yaml.mapping do
@@ -302,13 +301,13 @@ module Unit
         EnumConverter(Unit).to_yaml(@unit, yaml)
       end
     end
-    
+
     # JSON deserialization
     def self.from_json(string_or_io) : self
       parser = JSON::PullParser.new(string_or_io)
       value = nil
       unit = nil
-      
+
       parser.read_object do |key|
         case key
         when "value"
@@ -319,23 +318,23 @@ module Unit
           parser.skip
         end
       end
-      
+
       raise JSON::ParseException.new("Missing 'value' field", 0, 0) unless value
       raise JSON::ParseException.new("Missing 'unit' field", 0, 0) unless unit
-      
+
       new(value, unit)
     end
-    
+
     # YAML deserialization
     def self.from_yaml(string_or_io) : self
       yaml = YAML.parse(string_or_io)
-      
+
       value_any = yaml["value"]?
       unit_str = yaml["unit"]?.try(&.as_s?)
-      
+
       raise YAML::ParseException.new("Missing 'value' field", 0, 0) unless value_any
       raise YAML::ParseException.new("Missing 'unit' field", 0, 0) unless unit_str
-      
+
       # Handle both string and number values
       value = case value_any
               when .as_s?
@@ -347,7 +346,7 @@ module Unit
               else
                 raise YAML::ParseException.new("Invalid 'value' field type", 0, 0)
               end
-      
+
       # Parse unit with case-insensitive support
       unit = Unit.parse?(unit_str) || begin
         normalized = unit_str.downcase
@@ -355,12 +354,12 @@ module Unit
           break enum_value if enum_value.to_s.downcase == normalized
         end
       end
-      
+
       unless unit.is_a?(Unit)
         valid_values = Unit.values.map(&.to_s).join(", ")
         raise YAML::ParseException.new("Invalid unit value: '#{unit_str}'. Valid values are: #{valid_values}", 0, 0)
       end
-      
+
       new(value, unit)
     end
   end

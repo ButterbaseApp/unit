@@ -12,7 +12,7 @@ module Unit
   # ```
   # weight1 = Weight.new(1, Weight::Unit::Kilogram)
   # weight2 = Weight.new(1000, Weight::Unit::Gram)
-  # weight1 == weight2  # => true (equivalent quantities)
+  # weight1 == weight2 # => true (equivalent quantities)
   # ```
   module Comparison
     # Spaceship operator for ordering comparisons
@@ -31,7 +31,7 @@ module Unit
     # ```
     # weight1 = Weight.new(1, Weight::Unit::Kilogram)
     # weight2 = Weight.new(500, Weight::Unit::Gram)
-    # weight1 <=> weight2  # => 1 (1kg > 500g)
+    # weight1 <=> weight2 # => 1 (1kg > 500g)
     # ```
     def <=>(other : self) : Int32
       if @unit == other.unit
@@ -41,7 +41,7 @@ module Unit
         @value <=> converted.value
       end
     end
-    
+
     # Equality comparison with automatic unit conversion
     #
     # Returns true if both measurements represent the same quantity,
@@ -54,7 +54,7 @@ module Unit
     # ```
     # weight1 = Weight.new(1, Weight::Unit::Kilogram)
     # weight2 = Weight.new(1000, Weight::Unit::Gram)
-    # weight1 == weight2  # => true
+    # weight1 == weight2 # => true
     # ```
     def ==(other : self) : Bool
       if @unit == other.unit
@@ -64,7 +64,7 @@ module Unit
         @value == converted.value
       end
     end
-    
+
     # Hash method ensuring equivalent measurements have equal hashes
     #
     # Converts the measurement to its base unit value before hashing to ensure
@@ -78,7 +78,7 @@ module Unit
     # ```
     # weight1 = Weight.new(1, Weight::Unit::Kilogram)
     # weight2 = Weight.new(1000, Weight::Unit::Gram)
-    # weight1.hash == weight2.hash  # => true
+    # weight1.hash == weight2.hash # => true
     # ```
     def hash(hasher)
       # Convert to base unit to ensure equivalent measurements hash equally

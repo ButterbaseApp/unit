@@ -32,18 +32,18 @@ module Unit
   # # Basic decimal parsing
   # weight = Unit::Parser.parse("10.5 kg", Unit::Weight)
   # length = Unit::Parser.parse("2.5 meters", Unit::Length)
-  # 
+  #
   # # Fraction parsing
   # half_pound = Unit::Parser.parse("1/2 pound", Unit::Weight)
   # quarter_cup = Unit::Parser.parse("1/4 cup", Unit::Volume)
-  # 
+  #
   # # Various formats
-  # Unit::Parser.parse("10kg", Unit::Weight)      # No space
-  # Unit::Parser.parse("10 KG", Unit::Weight)     # Uppercase
-  # Unit::Parser.parse("10 kilograms", Unit::Weight)  # Plural
-  # 
+  # Unit::Parser.parse("10kg", Unit::Weight)         # No space
+  # Unit::Parser.parse("10 KG", Unit::Weight)        # Uppercase
+  # Unit::Parser.parse("10 kilograms", Unit::Weight) # Plural
+  #
   # # Error handling
-  # Unit::Parser.parse("invalid", Unit::Weight)  # Raises ArgumentError
+  # Unit::Parser.parse("invalid", Unit::Weight) # Raises ArgumentError
   # ```
   module Parser
     # Regex pattern for matching fraction notation (e.g., "1/2", "3/4", "10/3")
@@ -56,7 +56,7 @@ module Unit
     #   "1/2" -> numerator: "1", denominator: "2"
     #   "10/3" -> numerator: "10", denominator: "3"
     FRACTION_REGEX = /^(-?\d+)\/(\d+)$/
-    
+
     # Regex pattern for matching decimal numbers including negative values
     #
     # Supports:
@@ -69,7 +69,7 @@ module Unit
     #   "-5.5" -> "-5.5"
     #   "0.001" -> "0.001"
     DECIMAL_REGEX = /^-?\d+(?:\.\d+)?$/
-    
+
     # Regex pattern for matching complete measurement strings
     #
     # Captures:
@@ -89,7 +89,7 @@ module Unit
     #   "5.5kg" -> value: "5.5", unit: "kg" (no space)
     #   "  10   kg  " -> value: "10", unit: "kg" (extra whitespace)
     MEASUREMENT_REGEX = /^\s*(-?\d+(?:\/\d+|\.\d+)?)\s*([a-zA-Z]+)\s*$/
-    
+
     # Parses a value string into either BigDecimal or BigRational
     #
     # First checks if the value matches the fraction pattern (e.g., "1/2").
@@ -114,38 +114,38 @@ module Unit
       if fraction_match = FRACTION_REGEX.match(value_str.strip)
         numerator = fraction_match[1].to_i
         denominator = fraction_match[2].to_i
-        
+
         if denominator == 0
           raise ArgumentError.new("Division by zero in fraction: #{value_str}")
         end
-        
+
         return BigRational.new(numerator, denominator)
       end
-      
+
       # Then try to parse as decimal
       if DECIMAL_REGEX.match(value_str.strip)
         return BigDecimal.new(value_str.strip)
       end
-      
+
       # If neither pattern matches, raise an error
       raise ArgumentError.new("Invalid numeric value: #{value_str}")
     end
-    
+
     # Parses a unit string for Weight measurements
     def self.parse_unit(weight_class : Weight.class, unit_str : String) : Weight::Unit
       unit_str_lower = unit_str.strip.downcase
-      
+
       Weight::Unit.each do |unit|
         # Strategy 1: Match enum string representation
         return unit if unit.to_s.downcase == unit_str_lower
-        
+
         # Strategy 2: Match unit symbol
         begin
           return unit if unit.symbol.downcase == unit_str_lower
         rescue
           # Continue if symbol method fails
         end
-        
+
         # Strategy 3: Match unit name (singular and plural)
         begin
           return unit if unit.name.downcase == unit_str_lower
@@ -154,25 +154,25 @@ module Unit
           # Continue if name method fails
         end
       end
-      
+
       raise ArgumentError.new("Unknown unit: #{unit_str}")
     end
-    
+
     # Parses a unit string for Length measurements
     def self.parse_unit(length_class : Length.class, unit_str : String) : Length::Unit
       unit_str_lower = unit_str.strip.downcase
-      
+
       Length::Unit.each do |unit|
         # Strategy 1: Match enum string representation
         return unit if unit.to_s.downcase == unit_str_lower
-        
+
         # Strategy 2: Match unit symbol
         begin
           return unit if unit.symbol.downcase == unit_str_lower
         rescue
           # Continue if symbol method fails
         end
-        
+
         # Strategy 3: Match unit name (singular and plural)
         begin
           return unit if unit.name.downcase == unit_str_lower
@@ -181,10 +181,10 @@ module Unit
           # Continue if name method fails
         end
       end
-      
+
       raise ArgumentError.new("Unknown unit: #{unit_str}")
     end
-    
+
     # Parses a measurement string into a Weight object.
     #
     # Accepts various string formats and returns a properly typed Weight measurement.
@@ -192,19 +192,19 @@ module Unit
     #
     # ```
     # # Decimal values
-    # Unit::Parser.parse("10.5 kg", Unit::Weight)    # => Weight(10.5, :kilogram)
-    # Unit::Parser.parse("2.25 lb", Unit::Weight)    # => Weight(2.25, :pound)
-    # 
+    # Unit::Parser.parse("10.5 kg", Unit::Weight) # => Weight(10.5, :kilogram)
+    # Unit::Parser.parse("2.25 lb", Unit::Weight) # => Weight(2.25, :pound)
+    #
     # # Fractions
-    # Unit::Parser.parse("1/2 pound", Unit::Weight)  # => Weight(0.5, :pound)
-    # Unit::Parser.parse("3/4 oz", Unit::Weight)     # => Weight(0.75, :ounce)
-    # 
+    # Unit::Parser.parse("1/2 pound", Unit::Weight) # => Weight(0.5, :pound)
+    # Unit::Parser.parse("3/4 oz", Unit::Weight)    # => Weight(0.75, :ounce)
+    #
     # # Negative values
-    # Unit::Parser.parse("-3 g", Unit::Weight)       # => Weight(-3, :gram)
-    # 
+    # Unit::Parser.parse("-3 g", Unit::Weight) # => Weight(-3, :gram)
+    #
     # # Flexible spacing
-    # Unit::Parser.parse("10kg", Unit::Weight)       # No space
-    # Unit::Parser.parse("10   kg", Unit::Weight)    # Multiple spaces
+    # Unit::Parser.parse("10kg", Unit::Weight)    # No space
+    # Unit::Parser.parse("10   kg", Unit::Weight) # Multiple spaces
     # ```
     #
     # @param weight_class The Weight class (for type inference)
@@ -214,19 +214,19 @@ module Unit
     def self.parse(weight_class : Weight.class, input : String) : Weight
       match = MEASUREMENT_REGEX.match(input.strip)
       raise ArgumentError.new("Invalid format: #{input}") unless match
-      
+
       value_str = match[1]
       unit_str = match[2]
-      
+
       # Parse value (decimal or fraction)
       value = parse_value(value_str)
-      
+
       # Parse unit
       unit = parse_unit(Weight, unit_str)
-      
+
       Weight.new(value, unit)
     end
-    
+
     # Parses a measurement string into a Length object
     #
     # Examples:
@@ -236,16 +236,16 @@ module Unit
     def self.parse(length_class : Length.class, input : String) : Length
       match = MEASUREMENT_REGEX.match(input.strip)
       raise ArgumentError.new("Invalid format: #{input}") unless match
-      
+
       value_str = match[1]
       unit_str = match[2]
-      
+
       # Parse value (decimal or fraction)
       value = parse_value(value_str)
-      
+
       # Parse unit
       unit = parse_unit(Length, unit_str)
-      
+
       Length.new(value, unit)
     end
   end

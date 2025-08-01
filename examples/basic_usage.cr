@@ -73,7 +73,7 @@ weights = [
   Unit::Weight.new(500, :gram),
   Unit::Weight.new(2, :kilogram),
   Unit::Weight.new(1, :pound),
-  Unit::Weight.new(100, :gram)
+  Unit::Weight.new(100, :gram),
 ]
 
 puts "Unsorted weights:"
@@ -141,7 +141,7 @@ puts "Dimensions: #{package_length.to(:inch).format(precision: 0)}\" × " \
 puts "\nRecipe Scaling:"
 original_flour = Unit::Volume.new(2, :cup)
 original_milk = Unit::Volume.new(1.5, :cup)
-scale_factor = 0.5  # Make half the recipe
+scale_factor = 0.5 # Make half the recipe
 
 scaled_flour = Unit::Volume.new(original_flour.value * scale_factor, :cup)
 scaled_milk = Unit::Volume.new(original_milk.value * scale_factor, :cup)

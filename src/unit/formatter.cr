@@ -13,12 +13,12 @@ module Unit
   #
   # ## Examples
   #
-  # ```crystal
+  # ```
   # weight = Weight.new(10.5, Weight::Unit::Kilogram)
-  # weight.format                    # => "10.50 kilogram"
-  # weight.format(precision: 1)      # => "10.5 kilogram" 
+  # weight.format                      # => "10.50 kilogram"
+  # weight.format(precision: 1)        # => "10.5 kilogram"
   # weight.format(unit_format: :short) # => "10.50 kg"
-  # weight.humanize                  # => "10.5 kilograms"
+  # weight.humanize                    # => "10.5 kilograms"
   # ```
   module Formatter
     # Writes the measurement to an IO stream
@@ -28,7 +28,7 @@ module Unit
     def to_s(io : IO) : Nil
       io << to_s_legacy_format
     end
-    
+
     # Legacy format for backward compatibility
     # Shows .0 for integers, minimal decimals otherwise
     private def to_s_legacy_format : String
@@ -44,11 +44,11 @@ module Unit
                     end
                     formatted
                   end
-      
+
       unit_string = @unit.to_s.underscore.gsub('_', ' ')
       "#{value_str} #{unit_string}"
     end
-    
+
     # Returns a formatted string representation of the measurement
     #
     # ## Parameters
@@ -58,11 +58,11 @@ module Unit
     #
     # ## Examples
     #
-    # ```crystal
-    # measurement.format                          # => "10.50 kilogram"
-    # measurement.format(precision: 0)            # => "11 kilogram"
-    # measurement.format(precision: 3)            # => "10.500 kilogram"
-    # measurement.format(unit_format: :short)     # => "10.50 kg"
+    # ```
+    # measurement.format                                    # => "10.50 kilogram"
+    # measurement.format(precision: 0)                      # => "11 kilogram"
+    # measurement.format(precision: 3)                      # => "10.500 kilogram"
+    # measurement.format(unit_format: :short)               # => "10.50 kg"
     # measurement.format(precision: 1, unit_format: :short) # => "10.5 kg"
     # ```
     def format(precision : Int32 = 2, unit_format : Symbol = :long) : String
@@ -70,7 +70,7 @@ module Unit
       unit_string = format_unit(unit_format)
       "#{formatted_value} #{unit_string}"
     end
-    
+
     # Returns a human-readable string with proper pluralization
     #
     # Converts technical unit names to natural language with
@@ -78,7 +78,7 @@ module Unit
     #
     # ## Examples
     #
-    # ```crystal
+    # ```
     # Weight.new(1, Weight::Unit::Kilogram).humanize   # => "1 kilogram"
     # Weight.new(2, Weight::Unit::Kilogram).humanize   # => "2 kilograms"
     # Weight.new(0, Weight::Unit::Kilogram).humanize   # => "0 kilograms"
@@ -88,20 +88,20 @@ module Unit
     def humanize : String
       value_str = format_value_for_humanization
       unit_name = format_unit_name_for_humanization
-      
+
       if should_pluralize?
         unit_display = get_plural_unit_name(unit_name)
       else
         unit_display = unit_name
       end
-      
+
       "#{value_str} #{unit_display}"
     end
-    
+
     private def format_value(precision : Int32) : String
       # Clamp precision to reasonable bounds
       precision = precision.clamp(0, 10)
-      
+
       # Always format with the specified precision
       if precision == 0
         @value.round(precision).to_i.to_s
@@ -110,7 +110,7 @@ module Unit
         sprintf("%.#{precision}f", @value.to_f)
       end
     end
-    
+
     private def format_unit(format : Symbol) : String
       case format
       when :short
@@ -128,7 +128,7 @@ module Unit
         @unit.to_s
       end
     end
-    
+
     private def format_value_for_humanization : String
       # For humanization, show decimals only when necessary
       if @value == @value.to_i
@@ -143,12 +143,12 @@ module Unit
         value_str
       end
     end
-    
+
     private def format_unit_name_for_humanization : String
       # Convert enum name to human-readable lowercase format
       @unit.to_s.underscore.gsub('_', ' ')
     end
-    
+
     private def get_plural_unit_name(unit_name : String) : String
       # Handle special pluralization cases
       case unit_name
@@ -160,7 +160,7 @@ module Unit
         "#{unit_name}s"
       end
     end
-    
+
     private def should_pluralize? : Bool
       # Pluralize unless the absolute value is exactly 1
       @value.abs != BigDecimal.new("1")

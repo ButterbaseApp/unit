@@ -38,7 +38,7 @@ puts "Difference: #{(converted.value - precise_mass.value).abs}"
 puts "\n=== Astronomical Distances ==="
 
 # Earth-Sun distance (1 AU)
-au_meters = BigDecimal.new("149597870700")  # meters
+au_meters = BigDecimal.new("149597870700") # meters
 astronomical_unit = Unit::Length.new(au_meters, :meter)
 
 puts "1 AU = #{astronomical_unit} meters"
@@ -46,7 +46,7 @@ puts "1 AU = #{astronomical_unit.to(:kilometer)} kilometers"
 puts "1 AU = #{astronomical_unit.to(:mile)} miles"
 
 # Light travel time to the Sun
-light_speed_ms = BigDecimal.new("299792458")  # m/s
+light_speed_ms = BigDecimal.new("299792458") # m/s
 time_to_sun = au_meters / light_speed_ms
 puts "Light travel time to Sun: #{time_to_sun.round(2)} seconds"
 puts "Light travel time to Sun: #{(time_to_sun / 60).round(2)} minutes"
@@ -80,8 +80,8 @@ puts "  Load (lb): #{load.to(:pound).format(precision: 0)}"
 
 # Pressure calculation (force/area)
 # Note: This is a simplified example - a real Pressure measurement would be ideal
-force_newtons = load.value * BigDecimal.new("9.80665")  # kg to N
-area_m2 = BigDecimal.new("0.01")  # 100 cm²
+force_newtons = load.value * BigDecimal.new("9.80665") # kg to N
+area_m2 = BigDecimal.new("0.01")                       # 100 cm²
 pressure_pa = force_newtons / area_m2
 puts "\nPressure on 100 cm² area: #{pressure_pa.round(2)} Pa"
 puts "Pressure: #{(pressure_pa / 1000).round(2)} kPa"
@@ -106,7 +106,7 @@ puts "\n=== Relativistic Calculations ==="
 
 # Relativistic mass increase
 rest_mass = Unit::Weight.new(BigDecimal.new("1"), :kilogram)
-velocity_fraction = BigDecimal.new("0.9")  # 0.9c
+velocity_fraction = BigDecimal.new("0.9") # 0.9c
 
 # Lorentz factor: γ = 1/√(1 - v²/c²)
 v_squared = velocity_fraction ** 2

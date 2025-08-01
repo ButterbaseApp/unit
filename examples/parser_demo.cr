@@ -23,7 +23,7 @@ puts "  '  5.5  POUNDS  ' -> #{weight5.inspect}"
 
 puts
 
-# Length parsing examples  
+# Length parsing examples
 puts "Length Parsing:"
 length1 = Unit::Parser.parse(Unit::Length, "10.5 m")
 puts "  '10.5 m' -> #{length1.inspect}"
