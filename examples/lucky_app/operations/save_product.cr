@@ -8,12 +8,12 @@ class SaveProduct < Product::SaveOperation
   permit_columns name, description, sku, price_cents, stock_quantity
 
   # Custom attributes for parsing measurement strings
-  attribute weight_string : String?
-  attribute length_string : String?
-  attribute width_string : String?
-  attribute height_string : String?
-  attribute weight_unit : String?
-  attribute length_unit : String?
+  attribute weight_string : String? # ameba:disable Lint/UselessAssign
+  attribute length_string : String? # ameba:disable Lint/UselessAssign
+  attribute width_string : String?  # ameba:disable Lint/UselessAssign
+  attribute height_string : String? # ameba:disable Lint/UselessAssign
+  attribute weight_unit : String?   # ameba:disable Lint/UselessAssign
+  attribute length_unit : String?   # ameba:disable Lint/UselessAssign
 
   before_save do
     parse_measurements
@@ -31,11 +31,11 @@ class SaveProduct < Product::SaveOperation
       rescue ex : ArgumentError
         weight.add_error("is invalid: #{ex.message}")
       end
-    elsif weight_val = weight.value
-      # Already have a weight object
-    elsif weight_unit_val = weight_unit.value
-      # Try to create from form inputs
-      # This would come from separate value/unit form fields
+    elsif weight.value
+      # Already have a weight object - validation will happen in before_save
+    elsif weight_unit.value
+      # Unit specified but no measurement - this is an error case
+      weight.add_error("weight value is required when unit is specified")
     end
 
     # Parse dimensions
@@ -101,7 +101,8 @@ class SaveProduct < Product::SaveOperation
   private def validate_sku_format
     return if sku.value.nil?
 
-    sku_val = sku.value.not_nil!
+    sku_val = sku.value
+    return unless sku_val
     unless sku_val.matches?(/^[A-Z0-9\-]{6,20}$/)
       sku.add_error("must be 6-20 characters, uppercase letters, numbers, and hyphens only")
     end
@@ -114,13 +115,11 @@ class SaveProduct < Product::SaveOperation
 
   # Helper method to set weight from value and unit
   def set_weight_from_form(value : String, unit : String)
-    begin
-      numeric_value = BigDecimal.new(value)
-      unit_enum = parse_weight_unit(unit)
-      self.weight = Unit::Weight.new(numeric_value, unit_enum)
-    rescue ex
-      weight.add_error("is invalid")
-    end
+    numeric_value = BigDecimal.new(value)
+    unit_enum = parse_weight_unit(unit)
+    self.weight = Unit::Weight.new(numeric_value, unit_enum)
+  rescue ex
+    weight.add_error("is invalid")
   end
 
   private def parse_weight_unit(unit : String) : Unit::Weight::Unit

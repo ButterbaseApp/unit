@@ -1,4 +1,4 @@
-require "../avram_spec_helper"
+require "../avram_spec_helper_spec"
 
 # Since we can't use macros in test classes without proper Avram setup,
 # we'll manually implement what the macro would generate for testing

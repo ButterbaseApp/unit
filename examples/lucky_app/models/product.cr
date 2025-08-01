@@ -5,12 +5,12 @@ class Product < BaseModel
   include Unit::Avram::ColumnExtensions
 
   table do
-    primary_key id : Int64
+    primary_key id : Int64 # ameba:disable Lint/UselessAssign
 
     # Basic product information
-    column name : String
-    column description : String?
-    column sku : String
+    column name : String         # ameba:disable Lint/UselessAssign
+    column description : String? # ameba:disable Lint/UselessAssign
+    column sku : String          # ameba:disable Lint/UselessAssign
 
     # Measurement columns - creates value and unit columns for each
     measurement_column :weight, Weight, required: true, indexed: true
@@ -19,8 +19,8 @@ class Product < BaseModel
     measurement_column :height, Length, required: true
 
     # Pricing and inventory
-    column price_cents : Int32
-    column stock_quantity : Int32
+    column price_cents : Int32    # ameba:disable Lint/UselessAssign
+    column stock_quantity : Int32 # ameba:disable Lint/UselessAssign
 
     timestamps
   end
@@ -30,9 +30,14 @@ class Product < BaseModel
     return nil unless length && width && height
 
     # Convert all to meters for calculation
-    l = length.not_nil!.convert_to(:meter).value
-    w = width.not_nil!.convert_to(:meter).value
-    h = height.not_nil!.convert_to(:meter).value
+    length_val = length
+    width_val = width
+    height_val = height
+    return nil unless length_val && width_val && height_val
+
+    l = length_val.convert_to(:meter).value
+    w = width_val.convert_to(:meter).value
+    h = height_val.convert_to(:meter).value
 
     # Calculate cubic meters, then convert to liters
     cubic_meters = l * w * h
@@ -47,9 +52,14 @@ class Product < BaseModel
     return weight unless length && width && height
 
     # Convert to centimeters
-    l = length.not_nil!.convert_to(:centimeter).value
-    w = width.not_nil!.convert_to(:centimeter).value
-    h = height.not_nil!.convert_to(:centimeter).value
+    length_val = length
+    width_val = width
+    height_val = height
+    return weight unless length_val && width_val && height_val
+
+    l = length_val.convert_to(:centimeter).value
+    w = width_val.convert_to(:centimeter).value
+    h = height_val.convert_to(:centimeter).value
 
     # Calculate dimensional weight
     dim_weight_kg = (l * w * h) / BigDecimal.new("5000")
@@ -74,9 +84,14 @@ class Product < BaseModel
     max_height = Unit::Length.new(100, :centimeter)
     max_weight = Unit::Weight.new(30, :kilogram)
 
-    length.not_nil! > max_length ||
-      width.not_nil! > max_width ||
-      height.not_nil! > max_height ||
+    length_val = length
+    width_val = width
+    height_val = height
+    return false unless length_val && width_val && height_val
+
+    length_val > max_length ||
+      width_val > max_width ||
+      height_val > max_height ||
       weight > max_weight
   end
 
@@ -94,9 +109,14 @@ class Product < BaseModel
   def dimensions_string(unit : Symbol = :centimeter) : String
     return "N/A" unless length && width && height
 
-    l = length.not_nil!.to(unit).format(precision: 1)
-    w = width.not_nil!.to(unit).format(precision: 1)
-    h = height.not_nil!.to(unit).format(precision: 1)
+    length_val = length
+    width_val = width
+    height_val = height
+    return "N/A" unless length_val && width_val && height_val
+
+    l = length_val.to(unit).format(precision: 1)
+    w = width_val.to(unit).format(precision: 1)
+    h = height_val.to(unit).format(precision: 1)
 
     "#{l} × #{w} × #{h}"
   end

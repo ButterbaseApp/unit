@@ -1,4 +1,4 @@
-require "../avram_spec_helper"
+require "../avram_spec_helper_spec"
 
 # Since we can't use the actual measurement_column macro without a real Avram model,
 # we'll test the functionality by manually implementing what the macro would generate
@@ -22,7 +22,8 @@ class TestProduct
   def weight : Unit::Weight
     # Check if cache is valid
     if @_weight_measurement
-      cached = @_weight_measurement.not_nil!
+      cached = @_weight_measurement
+      return cached if cached
       # If the underlying value has changed, invalidate cache
       if cached.value.to_f != weight_value
         @_weight_measurement = nil
@@ -35,8 +36,8 @@ class TestProduct
     unit_str = weight_unit
 
     @_weight_measurement = Unit::Weight.new(
-      value.not_nil!,
-      Unit::Weight::Unit.parse(unit_str.not_nil!)
+      value || raise("weight_value is nil"),
+      Unit::Weight::Unit.parse(unit_str || raise("weight_unit is nil"))
     )
   end
 
@@ -51,7 +52,12 @@ class TestProduct
   end
 
   def weight_from_string=(value : String)
-    self.weight = Unit::Parser.parse(Unit::Weight, value).not_nil!
+    parsed = Unit::Parser.parse(Unit::Weight, value)
+    if parsed
+      self.weight = parsed
+    else
+      raise ArgumentError.new("Could not parse weight from string: #{value}")
+    end
   end
 
   # Manually implement what the macro would generate for length (optional)
@@ -191,7 +197,8 @@ describe Unit::Avram::ColumnExtensions do
         product.weight = Unit::Weight.new(10, :kilogram)
 
         # Get cached value
-        weight1 = product.weight
+        original_weight = product.weight
+        puts "Original weight: #{original_weight}"
 
         # Change underlying value directly
         product.weight_value = 20.0

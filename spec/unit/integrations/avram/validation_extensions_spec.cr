@@ -1,4 +1,4 @@
-require "../avram_spec_helper"
+require "../avram_spec_helper_spec"
 
 # Test operation that manually implements validation logic
 class TestProductOperation < AvramSpecHelper::TestOperation
@@ -6,7 +6,7 @@ class TestProductOperation < AvramSpecHelper::TestOperation
 
   def before_save
     # validate_measurement_range for weight
-    if (measurement = weight.value)
+    if measurement = weight.value
       # Cast to the specific type for type safety
       if measurement.is_a?(Unit::Weight)
         min_value = Unit::Weight.new(0.1, :kilogram).convert_to(measurement.unit).value
@@ -19,14 +19,14 @@ class TestProductOperation < AvramSpecHelper::TestOperation
     end
 
     # validate_measurement_positive for length
-    if (measurement = length.value)
+    if measurement = length.value
       if measurement.is_a?(Unit::Length) && measurement.value <= 0
         length.add_error("must be positive")
       end
     end
 
     # validate_measurement_unit for volume
-    if (measurement = volume.value)
+    if measurement = volume.value
       if measurement.is_a?(Unit::Volume)
         allowed_units = [Unit::Volume::Unit::Liter, Unit::Volume::Unit::Milliliter]
         unless allowed_units.includes?(measurement.unit)
@@ -154,7 +154,7 @@ describe Unit::Avram::ValidationExtensions do
       operation.weight = Unit::Weight.new(1, :pound)
 
       # Manually perform the validation that would be generated
-      if (measurement = operation.weight.value)
+      if measurement = operation.weight.value
         if measurement.is_a?(Unit::Weight)
           allowed_units = [Unit::Weight::Unit::Kilogram, Unit::Weight::Unit::Gram]
           unless allowed_units.includes?(measurement.unit)

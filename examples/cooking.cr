@@ -99,7 +99,7 @@ flour_weight_sifted = Unit::Weight.new(120, :gram)
 flour_weight_scooped = Unit::Weight.new(140, :gram)
 flour_weight_packed = Unit::Weight.new(160, :gram)
 
-puts "1 cup of flour by weight:"
+puts "#{flour_cup} of flour by weight:"
 puts "  Sifted: #{flour_weight_sifted}"
 puts "  Scooped: #{flour_weight_scooped}"
 puts "  Packed: #{flour_weight_packed}"

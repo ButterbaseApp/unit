@@ -62,7 +62,7 @@ module Unit
       end
     end
 
-    # Multiplies a measurement by a scalar value
+    # Multiplies a measurement by a numeric value
     #
     # Scales the measurement value while preserving the unit.
     # Accepts any numeric type and converts to BigDecimal for precision.
@@ -74,26 +74,26 @@ module Unit
     # weight = Weight.new(5, Weight::Unit::Kilogram)
     # result = weight * 2.5 # => 12.5 kg
     # ```
-    def *(scalar : Number) : self
-      self.class.new(@value * BigDecimal.new(scalar.to_s), @unit)
+    def *(other : Number) : self
+      self.class.new(@value * BigDecimal.new(other.to_s), @unit)
     end
 
-    # Divides a measurement by a scalar value
+    # Divides a measurement by a numeric value
     #
     # Scales the measurement value by division while preserving the unit.
     # Accepts any numeric type and converts to BigDecimal for precision.
     #
     # Returns a new measurement instance, preserving immutability.
-    # Raises ArgumentError if scalar is zero.
+    # Raises ArgumentError if the divisor is zero.
     #
     # Example:
     # ```
     # weight = Weight.new(10, Weight::Unit::Kilogram)
     # result = weight / 2 # => 5 kg
     # ```
-    def /(scalar : Number) : self
-      raise ArgumentError.new("Cannot divide by zero") if scalar == 0
-      self.class.new(@value / BigDecimal.new(scalar.to_s), @unit)
+    def /(other : Number) : self
+      raise ArgumentError.new("Cannot divide by zero") if other == 0
+      self.class.new(@value / BigDecimal.new(other.to_s), @unit)
     end
   end
 end

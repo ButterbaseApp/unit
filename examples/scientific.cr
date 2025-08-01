@@ -9,8 +9,8 @@ puts "=== Physical Constants ==="
 # Speed of light in vacuum
 c_meters = Unit::Length.new(BigDecimal.new("299792458"), :meter)
 time_seconds = BigDecimal.new("1")
-puts "Speed of light: #{c_meters} per second"
-puts "Speed of light: #{c_meters.to(:kilometer)} per second"
+puts "Speed of light: #{c_meters} per #{time_seconds} second"
+puts "Speed of light: #{c_meters.to(:kilometer)} per #{time_seconds} second"
 
 # Planck's constant (using mass-energy equivalence)
 # h = 6.62607015 × 10^-34 kg⋅m²/s

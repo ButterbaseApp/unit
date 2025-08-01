@@ -19,13 +19,21 @@ describe Unit::Parser do
     it "captures numerator and denominator" do
       match = Unit::Parser::FRACTION_REGEX.match("1/2")
       match.should_not be_nil
-      match.not_nil![1].should eq("1")
-      match.not_nil![2].should eq("2")
+      if match
+        match[1].should eq("1")
+        match[2].should eq("2")
+      else
+        fail "Expected match to be non-nil"
+      end
 
       match = Unit::Parser::FRACTION_REGEX.match("-10/3")
       match.should_not be_nil
-      match.not_nil![1].should eq("-10")
-      match.not_nil![2].should eq("3")
+      if match
+        match[1].should eq("-10")
+        match[2].should eq("3")
+      else
+        fail "Expected match to be non-nil"
+      end
     end
 
     it "does not match invalid formats" do
@@ -69,32 +77,52 @@ describe Unit::Parser do
     it "matches decimal measurements with space" do
       match = Unit::Parser::MEASUREMENT_REGEX.match("10 kg")
       match.should_not be_nil
-      match.not_nil![1].should eq("10")
-      match.not_nil![2].should eq("kg")
+      if match
+        match[1].should eq("10")
+        match[2].should eq("kg")
+      else
+        fail "Expected match to be non-nil"
+      end
 
       match = Unit::Parser::MEASUREMENT_REGEX.match("-5.5 pounds")
       match.should_not be_nil
-      match.not_nil![1].should eq("-5.5")
-      match.not_nil![2].should eq("pounds")
+      if match
+        match[1].should eq("-5.5")
+        match[2].should eq("pounds")
+      else
+        fail "Expected match to be non-nil"
+      end
     end
 
     it "matches fraction measurements" do
       match = Unit::Parser::MEASUREMENT_REGEX.match("1/2 pound")
       match.should_not be_nil
-      match.not_nil![1].should eq("1/2")
-      match.not_nil![2].should eq("pound")
+      if match
+        match[1].should eq("1/2")
+        match[2].should eq("pound")
+      else
+        fail "Expected match to be non-nil"
+      end
 
       match = Unit::Parser::MEASUREMENT_REGEX.match("-3/4 meters")
       match.should_not be_nil
-      match.not_nil![1].should eq("-3/4")
-      match.not_nil![2].should eq("meters")
+      if match
+        match[1].should eq("-3/4")
+        match[2].should eq("meters")
+      else
+        fail "Expected match to be non-nil"
+      end
     end
 
     it "matches measurements without space" do
       match = Unit::Parser::MEASUREMENT_REGEX.match("5.5kg")
       match.should_not be_nil
-      match.not_nil![1].should eq("5.5")
-      match.not_nil![2].should eq("kg")
+      if match
+        match[1].should eq("5.5")
+        match[2].should eq("kg")
+      else
+        fail "Expected match to be non-nil"
+      end
     end
 
     it "handles flexible whitespace" do

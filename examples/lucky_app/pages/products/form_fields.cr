@@ -178,7 +178,7 @@ module Products::FormFields
             e.preventDefault();
             const stringInput = toggle.closest('.form-group').querySelector('.string-input');
             const structuredInput = toggle.closest('.form-group').querySelector('.structured-input');
-            
+
             if (stringInput.style.display === 'none') {
               stringInput.style.display = 'block';
               structuredInput.style.display = 'none';
@@ -188,7 +188,7 @@ module Products::FormFields
             }
           });
         });
-        
+
         // Convert price dollars to cents
         const priceInput = document.querySelector('input[name="product:price_dollars"]');
         if (priceInput) {

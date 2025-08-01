@@ -77,11 +77,11 @@ weights = [
 ]
 
 puts "Unsorted weights:"
-weights.each { |w| puts "  #{w}" }
+weights.each { |weight| puts "  #{weight}" }
 
 sorted = weights.sort
 puts "\nSorted by actual weight:"
-sorted.each { |w| puts "  #{w}" }
+sorted.each { |weight| puts "  #{weight}" }
 
 puts "\n=== Working with Precision ==="
 
@@ -100,6 +100,9 @@ puts "\n=== Type Safety Examples ==="
 # These examples would not compile (commented out)
 weight = Unit::Weight.new(10, :kilogram)
 length = Unit::Length.new(5, :meter)
+
+puts "Example weight: #{weight}"
+puts "Example length: #{length}"
 
 # This would cause a compile error:
 # total = weight + length  # Error: can't add Weight to Length

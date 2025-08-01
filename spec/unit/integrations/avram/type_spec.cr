@@ -1,4 +1,4 @@
-require "../avram_spec_helper"
+require "../avram_spec_helper_spec"
 
 describe Unit::Avram do
   describe "MeasurementType subclasses" do

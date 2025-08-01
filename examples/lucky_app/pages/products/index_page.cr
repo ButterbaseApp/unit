@@ -1,8 +1,8 @@
 # Example Lucky page showing products with measurements
 class Products::IndexPage < MainLayout
-  needs products : ProductQuery
-  needs weight_unit : String = "kilogram"
-  needs dimension_unit : String = "centimeter"
+  needs products : ProductQuery                # ameba:disable Lint/UselessAssign
+  needs weight_unit : String = "kilogram"      # ameba:disable Lint/UselessAssign
+  needs dimension_unit : String = "centimeter" # ameba:disable Lint/UselessAssign
 
   def content
     h1 "Products Inventory"

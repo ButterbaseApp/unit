@@ -98,6 +98,7 @@ describe Unit::Arithmetic do
       other_value = other.value
 
       result = original - other
+      result.should eq(Unit::Weight.new(2, Unit::Weight::Unit::Kilogram))
 
       original.value.should eq original_value
       other.value.should eq other_value

@@ -19,7 +19,7 @@ module Unit
 
         def parse(value : String)
           return SuccessfulCast(Nil).new(nil) if value.blank?
-          
+
           parsed = JSON.parse(value)
           # Unit.parse expects lowercase unit names
           unit_str = parsed["unit"].as_s
@@ -129,7 +129,7 @@ module Unit
         # Find records where measurement is greater than a value
         def with_{{column_name}}_greater_than(measurement : Unit::{{type.id}})
           normalized_value = measurement.convert_to(measurement.class.base_unit).value
-          
+
           # Build a CASE expression for unit conversion at the database level
           case_expr = String.build do |str|
             str << "({{column_name}}_value * CASE {{column_name}}_unit"
@@ -139,14 +139,14 @@ module Unit
             end
             str << " END)"
           end
-          
+
           where("#{case_expr} > ?", normalized_value)
         end
 
         # Find records where measurement is less than a value
         def with_{{column_name}}_less_than(measurement : Unit::{{type.id}})
           normalized_value = measurement.convert_to(measurement.class.base_unit).value
-          
+
           case_expr = String.build do |str|
             str << "({{column_name}}_value * CASE {{column_name}}_unit"
             Unit::{{type.id}}::Unit.each do |unit|
@@ -155,7 +155,7 @@ module Unit
             end
             str << " END)"
           end
-          
+
           where("#{case_expr} < ?", normalized_value)
         end
 
@@ -163,7 +163,7 @@ module Unit
         def with_{{column_name}}_between(min : Unit::{{type.id}}, max : Unit::{{type.id}})
           min_normalized = min.convert_to(min.class.base_unit).value
           max_normalized = max.convert_to(max.class.base_unit).value
-          
+
           case_expr = String.build do |str|
             str << "({{column_name}}_value * CASE {{column_name}}_unit"
             Unit::{{type.id}}::Unit.each do |unit|
@@ -172,7 +172,7 @@ module Unit
             end
             str << " END)"
           end
-          
+
           where("#{case_expr} BETWEEN ? AND ?", min_normalized, max_normalized)
         end
 
@@ -273,7 +273,7 @@ module Unit
         # Add composite index for range queries
         {% if options[:indexed] %}
           add_index :{{table}}, [:{{name}}_value, :{{name}}_unit]
-          
+
           # Add GiST index for range queries if requested
           {% if options[:gist_index] %}
             execute <<-SQL
@@ -340,16 +340,16 @@ module Unit
                 #{generate_unit_conversion_cases(type)}
                 ELSE 1
               END;
-              
+
               total := total + (values[i] * conversion_factor);
             END LOOP;
-            
+
             -- Convert from base unit to target unit
             conversion_factor := CASE target_unit
               #{generate_unit_conversion_cases(type)}
               ELSE 1
             END;
-            
+
             RETURN total / conversion_factor;
           END;
           $$ LANGUAGE plpgsql IMMUTABLE;
