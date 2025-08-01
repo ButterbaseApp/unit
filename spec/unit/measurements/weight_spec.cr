@@ -179,22 +179,26 @@ describe Unit::Weight do
   
   describe "core functionality" do
     
-    it "supports equality comparison" do
+    it "supports equality comparison with unit conversion" do
       weight1 = Unit::Weight.new(1000, Unit::Weight::Unit::Gram)
       weight2 = Unit::Weight.new(1, Unit::Weight::Unit::Kilogram)
       weight3 = Unit::Weight.new(1000, Unit::Weight::Unit::Gram)
+      weight4 = Unit::Weight.new(500, Unit::Weight::Unit::Gram)
       
-      weight1.should_not eq weight2  # Different units, even if equivalent
+      weight1.should eq weight2      # Equivalent measurements are equal
       weight1.should eq weight3      # Same value and unit
+      weight1.should_not eq weight4  # Different quantities
     end
     
-    it "supports hash functionality" do
+    it "supports hash functionality with equivalent measurements" do
       weight1 = Unit::Weight.new(1000, Unit::Weight::Unit::Gram)
       weight2 = Unit::Weight.new(1, Unit::Weight::Unit::Kilogram)
       weight3 = Unit::Weight.new(1000, Unit::Weight::Unit::Gram)
+      weight4 = Unit::Weight.new(500, Unit::Weight::Unit::Gram)
       
-      weight1.hash.should eq weight3.hash
-      weight1.hash.should_not eq weight2.hash
+      weight1.hash.should eq weight2.hash  # Equivalent measurements have equal hashes
+      weight1.hash.should eq weight3.hash  # Same measurements have equal hashes
+      weight1.hash.should_not eq weight4.hash  # Different quantities have different hashes
     end
     
     it "has string representation" do

@@ -1,5 +1,7 @@
 require "../measurement"
 require "../conversion"
+require "../arithmetic"
+require "../comparison"
 
 module Unit
   # Volume measurement class with comprehensive unit support
@@ -17,6 +19,9 @@ module Unit
   #   Volume.new(16, Volume::Unit::FluidOunce)
   class Volume
     include Conversion
+    include Arithmetic
+    include Comparison
+    include Comparable(self)
     # Comprehensive volume unit enumeration
     #
     # Includes both metric units (liter-based) and US liquid units
@@ -190,17 +195,6 @@ module Unit
       io << "Volume(" << @value << ", " << @unit << ")"
     end
     
-    # Equality comparison based on value and unit
-    def ==(other : Volume) : Bool
-      @value == other.value && @unit == other.unit
-    end
-    
-    # Hash function for use in Hash collections
-    def hash(hasher)
-      hasher = @value.hash(hasher)
-      hasher = @unit.hash(hasher)
-      hasher
-    end
     
     private def validate_value!
       # Crystal's type system prevents nil values, but check for edge cases

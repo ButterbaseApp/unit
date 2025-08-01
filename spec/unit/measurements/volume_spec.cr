@@ -222,22 +222,26 @@ describe Unit::Volume do
   end
   
   describe "core functionality" do
-    it "supports equality comparison" do
+    it "supports equality comparison with unit conversion" do
       volume1 = Unit::Volume.new(500, Unit::Volume::Unit::Milliliter)
       volume2 = Unit::Volume.new(0.5, Unit::Volume::Unit::Liter)
       volume3 = Unit::Volume.new(500, Unit::Volume::Unit::Milliliter)
+      volume4 = Unit::Volume.new(250, Unit::Volume::Unit::Milliliter)
       
-      volume1.should_not eq volume2  # Different units, even if equivalent
+      volume1.should eq volume2      # Equivalent measurements are equal
       volume1.should eq volume3      # Same value and unit
+      volume1.should_not eq volume4  # Different quantities
     end
     
-    it "supports hash functionality" do
+    it "supports hash functionality with equivalent measurements" do
       volume1 = Unit::Volume.new(500, Unit::Volume::Unit::Milliliter)
       volume2 = Unit::Volume.new(0.5, Unit::Volume::Unit::Liter)
       volume3 = Unit::Volume.new(500, Unit::Volume::Unit::Milliliter)
+      volume4 = Unit::Volume.new(250, Unit::Volume::Unit::Milliliter)
       
-      volume1.hash.should eq volume3.hash
-      volume1.hash.should_not eq volume2.hash
+      volume1.hash.should eq volume2.hash  # Equivalent measurements have equal hashes
+      volume1.hash.should eq volume3.hash  # Same measurements have equal hashes
+      volume1.hash.should_not eq volume4.hash  # Different quantities have different hashes
     end
     
     it "has string representation" do

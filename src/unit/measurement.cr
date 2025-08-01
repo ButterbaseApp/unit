@@ -1,4 +1,6 @@
 require "big"
+require "./arithmetic"
+require "./conversion"
 
 module Unit
   # Generic measurement class with phantom types for compile-time type safety
@@ -10,6 +12,9 @@ module Unit
   #   Measurement(Weight, WeightUnit).new(10.5, WeightUnit::Kilogram)
   #   Measurement(Length, LengthUnit).new(5, LengthUnit::Meter)
   class Measurement(T, U)
+    include Arithmetic
+    include Conversion
+    
     # Value stored as BigDecimal for precision
     getter value : BigDecimal
     

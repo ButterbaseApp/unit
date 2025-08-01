@@ -1,5 +1,7 @@
 require "../measurement"
 require "../conversion"
+require "../arithmetic"
+require "../comparison"
 
 module Unit
   # Length measurement class with comprehensive unit support
@@ -14,6 +16,9 @@ module Unit
   #   Length.new(500, Length::Unit::Millimeter)
   class Length
     include Conversion
+    include Arithmetic
+    include Comparison
+    include Comparable(self)
     # Comprehensive length unit enumeration
     #
     # Includes both metric units (meter-based) and imperial units (foot-based)
@@ -187,17 +192,6 @@ module Unit
       io << "Length(" << @value << ", " << @unit << ")"
     end
     
-    # Equality comparison based on value and unit
-    def ==(other : Length) : Bool
-      @value == other.value && @unit == other.unit
-    end
-    
-    # Hash function for use in Hash collections
-    def hash(hasher)
-      hasher = @value.hash(hasher)
-      hasher = @unit.hash(hasher)
-      hasher
-    end
     
     private def validate_value!
       # Crystal's type system prevents nil values, but check for edge cases

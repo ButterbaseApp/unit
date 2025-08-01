@@ -216,22 +216,26 @@ describe Unit::Length do
   end
   
   describe "core functionality" do
-    it "supports equality comparison" do
+    it "supports equality comparison with unit conversion" do
       length1 = Unit::Length.new(100, Unit::Length::Unit::Centimeter)
       length2 = Unit::Length.new(1, Unit::Length::Unit::Meter)
       length3 = Unit::Length.new(100, Unit::Length::Unit::Centimeter)
+      length4 = Unit::Length.new(50, Unit::Length::Unit::Centimeter)
       
-      length1.should_not eq length2  # Different units, even if equivalent
+      length1.should eq length2      # Equivalent measurements are equal
       length1.should eq length3      # Same value and unit
+      length1.should_not eq length4  # Different quantities
     end
     
-    it "supports hash functionality" do
+    it "supports hash functionality with equivalent measurements" do
       length1 = Unit::Length.new(100, Unit::Length::Unit::Centimeter)
       length2 = Unit::Length.new(1, Unit::Length::Unit::Meter)
       length3 = Unit::Length.new(100, Unit::Length::Unit::Centimeter)
+      length4 = Unit::Length.new(50, Unit::Length::Unit::Centimeter)
       
-      length1.hash.should eq length3.hash
-      length1.hash.should_not eq length2.hash
+      length1.hash.should eq length2.hash  # Equivalent measurements have equal hashes
+      length1.hash.should eq length3.hash  # Same measurements have equal hashes
+      length1.hash.should_not eq length4.hash  # Different quantities have different hashes
     end
     
     it "has string representation" do

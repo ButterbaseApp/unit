@@ -1,5 +1,7 @@
 require "../measurement"
 require "../conversion"
+require "../arithmetic"
+require "../comparison"
 
 module Unit
   # Weight measurement class with comprehensive unit support
@@ -14,6 +16,9 @@ module Unit
   #   Weight.new(500, Weight::Unit::Gram)
   class Weight
     include Conversion
+    include Arithmetic
+    include Comparison
+    include Comparable(self)
     # Comprehensive weight unit enumeration
     #
     # Includes both metric units (gram-based) and imperial units (pound-based)
@@ -179,17 +184,6 @@ module Unit
       io << "Weight(" << @value << ", " << @unit << ")"
     end
     
-    # Equality comparison based on value and unit
-    def ==(other : Weight) : Bool
-      @value == other.value && @unit == other.unit
-    end
-    
-    # Hash function for use in Hash collections
-    def hash(hasher)
-      hasher = @value.hash(hasher)
-      hasher = @unit.hash(hasher)
-      hasher
-    end
     
     private def validate_value!
       # Crystal's type system prevents nil values, but check for edge cases
