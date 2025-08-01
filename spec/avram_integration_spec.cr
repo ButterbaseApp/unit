@@ -6,7 +6,7 @@
 
 require "./spec_helper"
 require "avram"
-require "../avram_spec_helper_spec"
+require "./unit/integrations/avram_spec_helper_spec"
 require "./unit/integrations/avram/**"
 
 puts "Running Avram integration specs..."

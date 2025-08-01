@@ -21,11 +21,9 @@ class TestProduct
   # Manually implement what the macro would generate for weight (required)
   def weight : Unit::Weight
     # Check if cache is valid
-    if @_weight_measurement
-      cached = @_weight_measurement
-      return cached if cached
+    if cached = @_weight_measurement
       # If the underlying value has changed, invalidate cache
-      if cached.value.to_f != weight_value
+      if weight_value && cached.value.to_f != weight_value
         @_weight_measurement = nil
       else
         return cached
