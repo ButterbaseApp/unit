@@ -559,7 +559,7 @@
           4,
           5
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -567,7 +567,7 @@
             "description": "Set up the Unit::Parser module with regex patterns for fractions, decimals, and measurements",
             "dependencies": [],
             "details": "Create src/unit/parser.cr file and implement the Unit::Parser module with three core regex patterns: FRACTION_REGEX for matching fraction notation (e.g., '1/2'), DECIMAL_REGEX for matching decimal numbers including negative values, and MEASUREMENT_REGEX for matching the complete measurement string format. Ensure the MEASUREMENT_REGEX can handle both decimal and fraction values followed by unit strings with flexible whitespace.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create unit tests to verify each regex pattern matches expected formats: test FRACTION_REGEX with '1/2', '3/4', '10/3'; test DECIMAL_REGEX with '10', '-5.5', '0.001'; test MEASUREMENT_REGEX with '10 kg', '1/2 pound', '-3.14 meters'"
           },
           {
@@ -578,7 +578,7 @@
               "9.1"
             ],
             "details": "Within the parse method, implement the value parsing logic that extracts the numeric portion from the regex match. Check if the value matches the fraction pattern first - if so, parse numerator and denominator and create a BigRational. Otherwise, parse as BigDecimal for decimal values. Ensure proper handling of negative values in both formats.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test parsing various numeric formats: verify '1/2' creates BigRational(1,2), '10.5' creates BigDecimal('10.5'), '-3.14' creates negative BigDecimal, '0' and '1' parse correctly as edge cases"
           },
           {
@@ -589,7 +589,7 @@
               "9.1"
             ],
             "details": "Implement the private parse_unit method that takes a measurement type class T and a unit string. Convert the unit string to lowercase for case-insensitive matching. Iterate through T::Unit enum values and compare each unit's string representation (converted to lowercase) with the input. Return the matching unit enum value when found. This should work generically for any measurement type (Weight, Length, etc.).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test unit matching with various cases: 'kg' matches Kilogram, 'POUND' matches Pound, 'oz' matches Ounce; verify unknown units like 'xyz' raise ArgumentError"
           },
           {
@@ -601,7 +601,7 @@
               "9.3"
             ],
             "details": "Complete the main parse method that accepts a measurement type T and input string. Strip whitespace from input, apply MEASUREMENT_REGEX to extract value and unit parts. Call the value parsing logic to get BigDecimal or BigRational, then call parse_unit to get the unit enum. Create and return a new instance of T with the parsed value and unit. Include proper error handling with clear messages for invalid format (regex doesn't match) and unknown units.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test complete parsing flow: '10.5 kg' creates Weight instance with value 10.5 and Unit::Kilogram; test error cases like 'invalid', '10', 'kg' (missing parts), '10 xyz' (unknown unit)"
           },
           {
@@ -613,7 +613,7 @@
               "9.4"
             ],
             "details": "Extend the parse_unit method to also check against unit aliases (e.g., 'g' for Gram, 'lb' for Pound). Handle edge cases like multiple spaces between value and unit, leading/trailing whitespace, and units with special characters. Consider adding support for plural forms (e.g., 'pounds' vs 'pound'). Ensure the parser remains performant even with these additional checks.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test alias recognition: 'g' maps to Gram, 'lb' to Pound; test spacing variations: '10  kg', ' 10 kg ', '10\tkg'; test plural handling if implemented: '10 pounds' vs '10 pound'"
           }
         ]
@@ -763,7 +763,7 @@
         "description": "Create Lucky/Avram integration for database persistence of measurements",
         "details": "Create src/unit/integrations/avram.cr:\n```crystal\nmodule Unit\n  module Avram\n    macro measurement_column(name, type)\n      column {{name}}_value : Float64?\n      column {{name}}_unit : String?\n      \n      def {{name}} : {{type}}?\n        return nil unless {{name}}_value && {{name}}_unit\n        \n        unit_enum = {{type}}::Unit.parse({{name}}_unit.not_nil!)\n        {{type}}.new({{name}}_value.not_nil!, unit_enum)\n      rescue\n        nil\n      end\n      \n      def {{name}}=(measurement : {{type}}?)\n        if measurement\n          self.{{name}}_value = measurement.value.to_f64\n          self.{{name}}_unit = measurement.unit.to_s\n        else\n          self.{{name}}_value = nil\n          self.{{name}}_unit = nil\n        end\n      end\n    end\n    \n    module Validations\n      macro validate_measurement(name)\n        validate_required {{name}}_value, {{name}}_unit\n        \n        before_save do\n          if {{name}}_value && {{name}}_unit\n            {{name}}_unit_enum = {{type}}::Unit.parse?({{name}}_unit.not_nil!)\n            add_error(:{{name}}_unit, \"is not a valid unit\") unless {{name}}_unit_enum\n          end\n        end\n      end\n    end\n  end\nend\n```\n- Store as two columns: value (numeric) and unit (string)\n- Handle nullable measurement columns\n- Provide validation helpers\n- Auto-convert between database and object representation",
         "testStrategy": "Test with actual Avram models, verify nullable column handling, test validation of invalid units, test round-trip persistence, verify query capabilities",
-        "priority": "high",
+        "priority": "low",
         "dependencies": [
           2,
           3,
@@ -1056,7 +1056,7 @@
     ],
     "metadata": {
       "created": "2025-08-01T04:58:51.369Z",
-      "updated": "2025-08-01T06:43:17.541Z",
+      "updated": "2025-08-01T06:53:26.993Z",
       "description": "Tasks for master context"
     }
   }
