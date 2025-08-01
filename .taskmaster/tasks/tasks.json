@@ -760,73 +760,88 @@
       {
         "id": 12,
         "title": "Implement Avram Integration Module",
-        "description": "Create Lucky/Avram integration for database persistence of measurements",
-        "details": "Create src/unit/integrations/avram.cr:\n```crystal\nmodule Unit\n  module Avram\n    macro measurement_column(name, type)\n      column {{name}}_value : Float64?\n      column {{name}}_unit : String?\n      \n      def {{name}} : {{type}}?\n        return nil unless {{name}}_value && {{name}}_unit\n        \n        unit_enum = {{type}}::Unit.parse({{name}}_unit.not_nil!)\n        {{type}}.new({{name}}_value.not_nil!, unit_enum)\n      rescue\n        nil\n      end\n      \n      def {{name}}=(measurement : {{type}}?)\n        if measurement\n          self.{{name}}_value = measurement.value.to_f64\n          self.{{name}}_unit = measurement.unit.to_s\n        else\n          self.{{name}}_value = nil\n          self.{{name}}_unit = nil\n        end\n      end\n    end\n    \n    module Validations\n      macro validate_measurement(name)\n        validate_required {{name}}_value, {{name}}_unit\n        \n        before_save do\n          if {{name}}_value && {{name}}_unit\n            {{name}}_unit_enum = {{type}}::Unit.parse?({{name}}_unit.not_nil!)\n            add_error(:{{name}}_unit, \"is not a valid unit\") unless {{name}}_unit_enum\n          end\n        end\n      end\n    end\n  end\nend\n```\n- Store as two columns: value (numeric) and unit (string)\n- Handle nullable measurement columns\n- Provide validation helpers\n- Auto-convert between database and object representation",
-        "testStrategy": "Test with actual Avram models, verify nullable column handling, test validation of invalid units, test round-trip persistence, verify query capabilities",
-        "priority": "low",
+        "description": "Create Lucky/Avram integration for database persistence of measurements using idiomatic Avram patterns with custom types and composite columns",
+        "status": "done",
         "dependencies": [
           2,
           3,
           4,
           5
         ],
-        "status": "pending",
+        "priority": "low",
+        "details": "Create src/unit/integrations/avram.cr with proper Avram integration patterns:\n\n1. Custom Avram::Type classes for each measurement type (Weight, Length, etc.)\n2. Composite column storage (value + unit) for better indexing and querying\n3. Type registration with Avram.register_type\n4. Measurement column macro for easy model integration\n5. Query extensions for measurement comparisons and aggregations\n6. Validation extensions for measurement-specific validations\n7. Migration helpers for creating measurement columns\n8. Database-specific optimizations (PostgreSQL constraints, etc.)\n\nImplementation should follow separation of concerns, keeping measurement logic separate from persistence logic while providing seamless integration with Avram models.",
+        "testStrategy": "Test custom Avram::Type serialization/deserialization, verify composite column storage and retrieval, test type registration with Avram, validate query extensions work with different measurement types, test migration helpers generate correct SQL, verify database constraints for valid units, test performance with indexed measurement queries",
         "subtasks": [
           {
             "id": 1,
-            "title": "Create Avram module structure and measurement_column macro",
-            "description": "Set up the base Avram integration module with the measurement_column macro that defines the two-column storage pattern",
+            "title": "Create custom Avram::Type classes for measurements",
+            "description": "Implement custom Avram::Type subclasses for each measurement type to handle serialization/deserialization",
+            "status": "done",
             "dependencies": [],
-            "details": "Create src/unit/integrations/avram.cr with the Unit::Avram module. Implement the measurement_column macro that generates two columns (_value and _unit) for each measurement field. The macro should define column declarations using Avram's column DSL for Float64? value storage and String? unit storage.",
-            "status": "pending",
-            "testStrategy": "Create a test Avram model with measurement columns, verify the macro generates correct column definitions, test that column names follow the pattern name_value and name_unit"
+            "details": "Create individual Avram::Type classes (WeightType, LengthType, etc.) that inherit from Avram::Type. Each type should handle conversion between measurement objects and database representation. Implement from_db and to_db methods for composite value/unit storage. Register each type with Avram using Avram.register_type.",
+            "testStrategy": "Test type registration with Avram, verify from_db reconstructs measurement objects correctly, test to_db stores composite data, verify type safety prevents incorrect assignments"
           },
           {
             "id": 2,
-            "title": "Implement getter method for measurement reconstruction",
-            "description": "Add the getter method generation to the measurement_column macro that reconstructs measurement objects from database columns",
+            "title": "Implement composite column storage pattern",
+            "description": "Create the measurement_column macro that generates composite columns for value and unit storage",
+            "status": "done",
             "dependencies": [
-              "12.1"
+              1
             ],
-            "details": "Within the measurement_column macro, generate a getter method that returns the appropriate measurement type or nil. The method should check if both _value and _unit columns have values, parse the unit string into the appropriate enum using Unit.parse, and construct a new measurement instance. Include error handling to return nil if parsing fails.",
-            "status": "pending",
-            "testStrategy": "Test getter with valid data returns correct measurement object, test with nil values returns nil, test with invalid unit strings returns nil, verify type safety with different measurement types"
+            "details": "Implement measurement_column macro that generates two columns (_value : Float64 and _unit : String) for each measurement field. The macro should create getter/setter methods that work with the custom Avram::Type classes. Include proper null handling for optional measurements.",
+            "testStrategy": "Test macro generates correct column definitions, verify composite storage preserves precision, test nullable column handling, verify getter/setter methods work with Avram::Type classes"
           },
           {
             "id": 3,
-            "title": "Implement setter method for measurement persistence",
-            "description": "Add the setter method generation to store measurement objects as separate value and unit columns",
+            "title": "Add query extensions for measurement operations",
+            "description": "Implement query helper methods for comparing and filtering measurements in database queries",
+            "status": "done",
             "dependencies": [
-              "12.1"
+              1,
+              2
             ],
-            "details": "Generate a setter method within the measurement_column macro that accepts a measurement object or nil. When given a measurement, extract the value as Float64 and unit as string, storing them in the respective columns. When given nil, set both columns to nil. Ensure the setter properly handles the conversion from BigDecimal to Float64.",
-            "status": "pending",
-            "testStrategy": "Test setter with valid measurement updates both columns, test with nil clears both columns, verify precision handling when converting BigDecimal to Float64, test with different measurement types"
+            "details": "Create query extension methods that work with measurement columns. Include methods for range queries, unit-specific filtering, and measurement comparisons. Handle unit conversion at the query level where possible for performance.",
+            "testStrategy": "Test range queries work across different units, verify unit-specific filters, test measurement comparison queries, validate query performance with indexed measurement columns"
           },
           {
             "id": 4,
-            "title": "Create Validations module with validate_measurement macro",
-            "description": "Implement the Validations module with helpers for validating measurement columns",
+            "title": "Create validation extensions for measurements",
+            "description": "Implement validation helpers specific to measurement columns with unit validation",
+            "status": "done",
             "dependencies": [
-              "12.1"
+              1,
+              2
             ],
-            "details": "Create the Unit::Avram::Validations module containing the validate_measurement macro. The macro should use Avram's validate_required for both value and unit fields when they should be present together. Add a before_save callback that validates the unit string can be parsed into a valid enum value, adding an error to the unit field if parsing fails.",
-            "status": "pending",
-            "testStrategy": "Test validation requires both or neither column to be present, test invalid unit strings add validation errors, test valid measurements pass validation, verify validation runs before save"
+            "details": "Create Unit::Avram::Validations module with validate_measurement macro. Include validation for required measurements, valid unit enums, and value ranges. Integrate with Avram's validation system using before_save callbacks and proper error messaging.",
+            "testStrategy": "Test validation requires both value and unit when present, verify invalid units are rejected, test range validations work correctly, ensure validation errors are properly formatted"
           },
           {
             "id": 5,
-            "title": "Add query helpers and integration tests",
-            "description": "Create query helpers for working with measurement columns and comprehensive integration tests",
+            "title": "Add migration helpers and database constraints",
+            "description": "Create migration helper methods for generating measurement columns with appropriate database constraints",
+            "status": "done",
             "dependencies": [
-              "12.1",
-              "12.2",
-              "12.3",
-              "12.4"
+              1,
+              2
             ],
-            "details": "Add helper methods or macros for common query operations like finding records within a measurement range or with specific units. Create integration tests using actual Avram models with different measurement types (Weight, Length, etc.) to verify the full persistence cycle, nullable column handling, and query capabilities.",
-            "status": "pending",
-            "testStrategy": "Test full CRUD operations with measurements, verify queries can filter by measurement values and units, test bulk operations maintain data integrity, test migration generation for measurement columns"
+            "details": "Implement migration helpers that generate measurement column pairs with proper types and constraints. Add database-level constraints for valid unit values where supported. Include index creation helpers for common measurement query patterns.",
+            "testStrategy": "Test migration helpers generate correct SQL, verify database constraints prevent invalid units, test index creation for measurement columns, validate migration rollback functionality"
+          },
+          {
+            "id": 6,
+            "title": "Add database-specific optimizations",
+            "description": "Implement database-specific features like PostgreSQL check constraints and optimized storage",
+            "status": "done",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "Add database-specific optimizations such as PostgreSQL check constraints for valid units, optimized storage formats, and database-native measurement operations where available. Include adapter pattern for different database backends.",
+            "testStrategy": "Test PostgreSQL-specific constraints work correctly, verify storage optimizations don't break functionality, test adapter pattern works with different databases, validate performance improvements"
           }
         ]
       },
@@ -840,7 +855,7 @@
         "dependencies": [
           12
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -848,7 +863,7 @@
             "description": "Create the base MigrationHelpers module with add_measurement_column and remove_measurement_column macros",
             "dependencies": [],
             "details": "Implement the core module structure and the two primary macros:\n- add_measurement_column: Creates both _value (Float64) and _unit (String) columns with configurable precision, scale, and unit field size\n- remove_measurement_column: Removes both associated columns\n- Ensure proper Crystal macro syntax with interpolation\n- Handle table_for resolution for Avram compatibility",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create test migrations that use the macros, verify generated SQL contains correct column definitions, test with different precision/scale values, ensure both columns are created/removed together"
           },
           {
@@ -859,7 +874,7 @@
               "13.1"
             ],
             "details": "Extend add_measurement_column macro to handle:\n- :required option that makes both _value and _unit columns non-nullable\n- Use Avram's make_required within an alter block\n- Ensure constraints are applied after column creation\n- Handle edge cases where only one column needs to be required",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test migrations with required: true option, verify NOT NULL constraints in generated SQL, test rollback removes constraints properly, verify error handling for null values"
           },
           {
@@ -870,7 +885,7 @@
               "13.1"
             ],
             "details": "Add index support to add_measurement_column:\n- Check for :index option in macro parameters\n- Create index only on _value column (numeric queries)\n- Use Avram's create_index with proper table reference\n- Consider composite indexes for value+unit if needed\n- Handle index naming conventions",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test index creation with index: true option, verify index exists in database schema, benchmark query performance with/without indexes, test index removal on rollback"
           },
           {
@@ -881,7 +896,7 @@
               "13.1"
             ],
             "details": "Create change_measurement_precision macro that:\n- Alters precision and scale of existing _value columns\n- Uses Avram's change_type within alter block\n- Preserves existing data while changing column properties\n- Handles potential data truncation warnings\n- Supports migration rollback",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test changing precision on columns with existing data, verify data preservation within new constraints, test edge cases with values exceeding new precision, verify rollback restores original precision"
           },
           {
@@ -895,7 +910,7 @@
               "13.4"
             ],
             "details": "Implement additional helpers:\n- add_measurement_index: Add index to existing measurement columns\n- rename_measurement_column: Rename both _value and _unit columns atomically\n- add_measurement_default: Set default values for measurement columns\n- add_measurement_check_constraint: Add CHECK constraints for valid ranges\n- migrate_to_measurement: Convert existing single columns to measurement pairs",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test each helper macro individually, verify atomic operations for paired columns, test complex migrations using multiple helpers, ensure all operations are reversible"
           }
         ]
@@ -981,7 +996,7 @@
           13,
           14
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -989,7 +1004,7 @@
             "description": "Write the main README file with installation instructions, quick start examples, and feature overview",
             "dependencies": [],
             "details": "Create a comprehensive README.md following the Standard Readme specification. Include: clear installation instructions for adding the shard dependency, quick start code examples showing basic unit conversions, feature overview highlighting key capabilities like type safety and precision, badges for CI status and documentation, links to detailed documentation sections, and a table of contents for easy navigation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify all code examples in README compile and run correctly, ensure installation instructions work on fresh Crystal project, validate all internal and external links"
           },
           {
@@ -998,7 +1013,7 @@
             "description": "Document all public APIs using Crystal's documentation comments and generate HTML documentation",
             "dependencies": [],
             "details": "Add comprehensive documentation comments to all public classes, modules, and methods in the codebase. Include: method signatures with parameter types and return values, usage examples for each public method, @[Deprecated] annotations where applicable, module-level documentation explaining the purpose and usage patterns, macro documentation with expansion examples. Configure crystal docs generation with custom CSS if needed and ensure all examples in comments are valid Crystal code.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run crystal docs and verify HTML generation without errors, check all code examples in documentation comments compile, ensure cross-references between types work correctly"
           },
           {
@@ -1009,7 +1024,7 @@
               "15.1"
             ],
             "details": "Create four detailed guide documents: docs/getting-started.md covering basic usage patterns, unit conversion examples, and arithmetic operations; docs/lucky-integration.md explaining Avram model integration, form handling, and database storage patterns; docs/custom-measurements.md showing how to create new measurement types with proper unit enums and conversion factors; docs/performance.md with optimization tips, benchmark results, and best practices for high-precision calculations. Each guide should include runnable code examples and troubleshooting sections.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify all code snippets in guides compile and produce expected output, test Lucky integration examples in a real Lucky app, ensure custom measurement examples work as documented"
           },
           {
@@ -1021,7 +1036,7 @@
               "15.3"
             ],
             "details": "Develop four example applications: examples/basic_usage.cr demonstrating simple conversions, arithmetic operations, and formatting; examples/lucky_app/ as a full Lucky application with products having weights, a shopping cart calculating total weights, and form handling for measurements; examples/scientific.cr showing high-precision calculations, custom precision settings, and scientific notation handling; examples/cooking.cr featuring recipe scaling, ingredient conversions between volume and weight, and temperature conversions. Each example should be self-contained and runnable.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Ensure all example applications compile and run without errors, verify Lucky example app can be started and used, test that examples produce correct output for given inputs"
           },
           {
@@ -1033,7 +1048,7 @@
               "15.4"
             ],
             "details": "Create docs/migration-guide.md covering: step-by-step instructions for converting from manual calculation approaches, migration from other measurement libraries with code comparison examples, common patterns and idioms for effective library usage, performance considerations when migrating existing codebases, database migration strategies for existing data. Include a troubleshooting section addressing common migration issues and a checklist for validating successful migration.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test migration examples by actually converting sample code, verify database migration strategies with different scenarios, ensure all migration patterns compile and work correctly"
           }
         ]
@@ -1041,7 +1056,7 @@
     ],
     "metadata": {
       "created": "2025-08-01T04:58:51.369Z",
-      "updated": "2025-08-01T12:28:39.607Z",
+      "updated": "2025-08-01T18:44:38.237Z",
       "description": "Tasks for master context"
     }
   }

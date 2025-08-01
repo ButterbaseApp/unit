@@ -1,0 +1,259 @@
+require "avram"
+require "../src/unit"
+require "../src/unit/integrations/avram"
+
+# Basic Avram setup for example
+class AppDatabase < Avram::Database
+end
+
+abstract class BaseModel < Avram::Model
+  def self.database : Avram::Database.class
+    AppDatabase
+  end
+end
+
+Avram.configure do |settings|
+  settings.database_to_migrate = AppDatabase
+  
+  # Example connection string - would be real in a proper app
+  settings.database_url = ENV["DATABASE_URL"]? || "postgres://localhost/unit_example"
+end
+
+# Example model with measurement columns
+class Product < BaseModel
+  include Unit::Avram::ColumnExtensions
+  include Unit::Avram::ValidationExtensions
+
+  table do
+    primary_key id : Int64
+    column name : String
+    column description : String?
+    
+    # Define measurement columns directly (what the macro would expand to)
+    column weight_value : Float64
+    column weight_unit : String
+    column length_value : Float64?
+    column length_unit : String?
+    column width_value : Float64?
+    column width_unit : String?
+    column height_value : Float64?
+    column height_unit : String?
+  end
+
+  # Define measurement accessors
+  define_measurement_accessors :weight, Weight, required: true
+  define_measurement_accessors :length, Length
+  define_measurement_accessors :width, Length
+  define_measurement_accessors :height, Length
+
+  # Add validations
+  validate_measurement_positive :weight
+  validate_measurement_range :length,
+    Unit::Length.new(0.1, :centimeter),
+    Unit::Length.new(100, :meter)
+end
+
+# Example query with measurement extensions
+class ProductQuery < Product::BaseQuery
+  include Unit::Avram::QueryExtensions
+  
+  # Add query methods for measurements
+  measurement_query_methods :weight, Weight
+  measurement_query_methods :length, Length
+  measurement_query_methods :width, Length
+  measurement_query_methods :height, Length
+end
+
+# Example operation
+class SaveProduct < Product::SaveOperation
+  permit_columns name, description, weight_value, weight_unit, 
+                 length_value, length_unit, width_value, width_unit,
+                 height_value, height_unit
+  
+  # Custom setters for measurements
+  def set_weight_from_string(value : String)
+    self.weight = Unit::Parser.parse(Unit::Weight, value)
+  end
+  
+  def set_dimensions(length : String, width : String, height : String)
+    self.length = Unit::Parser.parse(Unit::Length, length)
+    self.width = Unit::Parser.parse(Unit::Length, width)
+    self.height = Unit::Parser.parse(Unit::Length, height)
+  end
+end
+
+# Example migration using the helpers
+class CreateProducts::V20240115000001 < Avram::Migrator::Migration::V1
+  include Unit::Avram::MigrationHelpers
+  
+  def migrate
+    create table_for(Product) do
+      primary_key id : Int64
+      add_timestamps
+      add name : String
+      add description : String?
+      
+      # Use the migration helper to add measurement columns
+      add_measurement_column :products, :weight, :Weight,
+        required: true,
+        indexed: true
+      
+      add_measurement_column :products, :length, :Length
+      add_measurement_column :products, :width, :Length
+      add_measurement_column :products, :height, :Length
+    end
+  end
+  
+  def rollback
+    drop table_for(Product)
+  end
+end
+
+# Example usage functions
+def create_product_example
+  SaveProduct.create(
+    name: "Heavy Box",
+    description: "A very heavy box",
+    weight_value: 25.5,
+    weight_unit: "kilogram",
+    length_value: 100.0,
+    length_unit: "centimeter",
+    width_value: 50.0,
+    width_unit: "centimeter",
+    height_value: 75.0,
+    height_unit: "centimeter"
+  ) do |operation, product|
+    if product
+      puts "Created product: #{product.name}"
+      puts "Weight: #{product.weight}" # Returns Unit::Weight object
+      puts "Weight in pounds: #{product.weight_in(:pound)}"
+    else
+      puts "Failed to create product"
+      operation.errors.each do |field, messages|
+        puts "#{field}: #{messages.join(", ")}"
+      end
+    end
+  end
+end
+
+def query_products_example
+  # Query products by weight range
+  heavy_products = ProductQuery.new
+    .with_weight_greater_than(Unit::Weight.new(20, :kilogram))
+    .with_weight_less_than(Unit::Weight.new(50, :kilogram))
+  
+  puts "Heavy products count: #{heavy_products.select_count}"
+  
+  # Query by specific unit
+  metric_products = ProductQuery.new
+    .with_weight_unit(Unit::Weight::Unit::Kilogram)
+  
+  # Query with length range
+  large_products = ProductQuery.new
+    .with_length_between(
+      Unit::Length.new(50, :centimeter),
+      Unit::Length.new(2, :meter)
+    )
+  
+  large_products.each do |product|
+    puts "Large product: #{product.name}"
+    puts "  Dimensions: #{product.length} x #{product.width} x #{product.height}"
+  end
+end
+
+def update_product_example
+  product = ProductQuery.first
+  
+  return unless product
+  
+  SaveProduct.update(product, name: "Updated Box") do |operation, updated_product|
+    if updated_product && operation.saved?
+      # Use the custom setter
+      operation.set_weight_from_string("30.5 kg")
+      operation.set_dimensions("120 cm", "60 cm", "80 cm")
+      
+      if operation.save
+        puts "Updated product measurements"
+      end
+    end
+  end
+end
+
+# Example with PostgreSQL-specific features
+class CreateProductsWithPGFeatures::V20240115000002 < Avram::Migrator::Migration::V1
+  include Unit::Avram::MigrationHelpers
+  
+  def migrate
+    alter table_for(Product) do
+      # Add volume with PostgreSQL optimizations
+      add_measurement_column :products, :volume, :Volume,
+        indexed: true,
+        gist_index: true,            # For range queries
+        add_normalized_column: true, # For fast comparisons
+        create_enum: true            # Use enum type for units
+    end
+    
+    # Create aggregation functions
+    create_measurement_aggregation_function :Weight
+    create_measurement_aggregation_function :Volume
+  end
+  
+  def rollback
+    alter table_for(Product) do
+      remove_measurement_column :products, :volume
+    end
+  end
+end
+
+# Advanced queries with PostgreSQL optimizations
+class ProductStatsQuery < Product::BaseQuery
+  include Unit::Avram::PostgreSQLExtensions
+  
+  # Use PostgreSQL aggregate functions
+  def total_weight_in(unit : Unit::Weight::Unit)
+    measurement_sum(:weight, Weight, unit)
+  end
+  
+  def average_weight_in(unit : Unit::Weight::Unit)
+    measurement_avg(:weight, Weight, unit)
+  end
+  
+  # Use normalized columns for faster queries
+  def heavy_items
+    with_normalized_greater_than(:weight, Unit::Weight.new(10, :kilogram))
+  end
+end
+
+# Example using JSONB storage for flexible measurements
+class FlexibleProduct < BaseModel
+  table do
+    primary_key id : Int64
+    column name : String
+    column measurements : JSON::Any  # Store multiple measurements
+  end
+end
+
+# Use the JSONB type for a single measurement
+class ProductWithJSONB < BaseModel
+  table do
+    primary_key id : Int64
+    column name : String
+    column weight : JSON::Any, serialize: Unit::Avram::MeasurementJSONBType
+  end
+end
+
+puts "Avram integration example loaded successfully!"
+puts "This example shows how to:"
+puts "- Define models with measurement columns"
+puts "- Create migrations with measurement helpers"
+puts "- Query with unit-aware comparisons"
+puts "- Use PostgreSQL optimizations"
+puts "- Validate measurements"
+puts ""
+puts "To run examples, set DATABASE_URL and call the example functions."
+
+# Documentation note about the measurement_column macro
+puts ""
+puts "Note: The measurement_column macro can be used in migrations,"
+puts "but in models you should define the columns manually and then"
+puts "use define_measurement_accessors to add the measurement functionality."

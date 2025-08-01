@@ -1,14 +1,50 @@
 require "big"
 
 module Unit
-  # String parsing module for converting human-readable strings into measurement objects
+  # Parser for converting human-readable strings into measurement objects
   #
-  # Supports parsing strings like:
-  #   "10.5 kg" -> Weight.new(10.5, Weight::Unit::Kilogram)
-  #   "1/2 pound" -> Weight.new(0.5, Weight::Unit::Pound)
-  #   "-3.14 meters" -> Length.new(-3.14, Length::Unit::Meter)
+  # The Parser module provides a flexible string parsing system that can handle
+  # various formats of measurement input, including decimal numbers, fractions,
+  # and different unit representations.
   #
-  # The parser handles both decimal and fractional notation with flexible whitespace.
+  # ## Supported Formats
+  #
+  # ### Numeric Values
+  # - Decimal: `"10.5"`, `"0.001"`, `"-3.14"`
+  # - Fractions: `"1/2"`, `"3/4"`, `"10/3"`
+  # - Negative values: `"-5"`, `"-1/2"`
+  #
+  # ### Unit Matching
+  # - Full names: `"kilogram"`, `"pound"`, `"meter"`
+  # - Plurals: `"kilograms"`, `"pounds"`, `"meters"`
+  # - Symbols: `"kg"`, `"lb"`, `"m"`
+  # - Case insensitive: `"KG"`, `"Kilogram"`, `"POUND"`
+  #
+  # ### Whitespace Handling
+  # - No space: `"10kg"`
+  # - Single space: `"10 kg"`
+  # - Multiple spaces: `"10   kg"`
+  # - Leading/trailing: `"  10 kg  "`
+  #
+  # ## Examples
+  #
+  # ```
+  # # Basic decimal parsing
+  # weight = Unit::Parser.parse("10.5 kg", Unit::Weight)
+  # length = Unit::Parser.parse("2.5 meters", Unit::Length)
+  # 
+  # # Fraction parsing
+  # half_pound = Unit::Parser.parse("1/2 pound", Unit::Weight)
+  # quarter_cup = Unit::Parser.parse("1/4 cup", Unit::Volume)
+  # 
+  # # Various formats
+  # Unit::Parser.parse("10kg", Unit::Weight)      # No space
+  # Unit::Parser.parse("10 KG", Unit::Weight)     # Uppercase
+  # Unit::Parser.parse("10 kilograms", Unit::Weight)  # Plural
+  # 
+  # # Error handling
+  # Unit::Parser.parse("invalid", Unit::Weight)  # Raises ArgumentError
+  # ```
   module Parser
     # Regex pattern for matching fraction notation (e.g., "1/2", "3/4", "10/3")
     #
@@ -149,12 +185,32 @@ module Unit
       raise ArgumentError.new("Unknown unit: #{unit_str}")
     end
     
-    # Parses a measurement string into a Weight object
+    # Parses a measurement string into a Weight object.
     #
-    # Examples:
-    #   parse(Weight, "10.5 kg") -> Weight.new(10.5, Weight::Unit::Kilogram)
-    #   parse(Weight, "1/2 pound") -> Weight.new(0.5, Weight::Unit::Pound)
-    #   parse(Weight, "-3 g") -> Weight.new(-3, Weight::Unit::Gram)
+    # Accepts various string formats and returns a properly typed Weight measurement.
+    # The parser is flexible with whitespace and case-insensitive for units.
+    #
+    # ```
+    # # Decimal values
+    # Unit::Parser.parse("10.5 kg", Unit::Weight)    # => Weight(10.5, :kilogram)
+    # Unit::Parser.parse("2.25 lb", Unit::Weight)    # => Weight(2.25, :pound)
+    # 
+    # # Fractions
+    # Unit::Parser.parse("1/2 pound", Unit::Weight)  # => Weight(0.5, :pound)
+    # Unit::Parser.parse("3/4 oz", Unit::Weight)     # => Weight(0.75, :ounce)
+    # 
+    # # Negative values
+    # Unit::Parser.parse("-3 g", Unit::Weight)       # => Weight(-3, :gram)
+    # 
+    # # Flexible spacing
+    # Unit::Parser.parse("10kg", Unit::Weight)       # No space
+    # Unit::Parser.parse("10   kg", Unit::Weight)    # Multiple spaces
+    # ```
+    #
+    # @param weight_class The Weight class (for type inference)
+    # @param input The string to parse
+    # @return A new Weight instance
+    # @raise ArgumentError if the format is invalid or unit is unknown
     def self.parse(weight_class : Weight.class, input : String) : Weight
       match = MEASUREMENT_REGEX.match(input.strip)
       raise ArgumentError.new("Invalid format: #{input}") unless match

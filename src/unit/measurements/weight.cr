@@ -11,24 +11,63 @@ require "yaml"
 module Unit
   # Weight measurement class with comprehensive unit support
   #
-  # Supports both metric and imperial weight units with precise conversions
-  # using BigDecimal for accuracy. Gram is used as the base unit for all
-  # conversions to maintain consistency and precision.
+  # This class represents mass/weight measurements and supports both metric and
+  # imperial units with precise conversions. All conversions use gram as the
+  # base unit to maintain consistency and precision.
   #
-  # Examples:
-  #   Weight.new(10.5, Weight::Unit::Kilogram)
-  #   Weight.new(2.5, Weight::Unit::Pound)
-  #   Weight.new(500, Weight::Unit::Gram)
+  # ## Units Supported
+  #
+  # ### Metric Units
+  # - `gram` (g) - Base unit
+  # - `kilogram` (kg) - 1000 grams
+  # - `milligram` (mg) - 0.001 grams
+  # - `tonne` (t) - 1,000,000 grams
+  #
+  # ### Imperial Units
+  # - `pound` (lb) - 453.59237 grams
+  # - `ounce` (oz) - 28.349523125 grams
+  # - `slug` - 14593.903 grams
+  #
+  # ## Examples
+  #
+  # ```
+  # # Creating weights
+  # weight = Unit::Weight.new(10.5, :kilogram)
+  # heavy = Unit::Weight.new(1, :tonne)
+  # light = Unit::Weight.new(500, :gram)
+  # 
+  # # Converting between units
+  # pounds = weight.convert_to(:pound)    # => 23.15 lb
+  # grams = weight.to(:gram)              # => 10500 g
+  # 
+  # # Arithmetic operations
+  # total = weight + Unit::Weight.new(5, :pound)
+  # doubled = weight * 2
+  # 
+  # # Parsing from strings
+  # parsed = Unit::Parser.parse("2.5 kg", Unit::Weight)
+  # ```
   class Weight
     include Conversion
     include Arithmetic
     include Comparison
     include Formatter
     include Comparable(self)
-    # Comprehensive weight unit enumeration
+    # Weight unit enumeration
     #
-    # Includes both metric units (gram-based) and imperial units (pound-based)
-    # with common aliases for convenience.
+    # Represents all supported weight/mass units. Each unit has:
+    # - A conversion factor to grams (the base unit)
+    # - Methods to check unit system (metric/imperial)
+    # - Symbol and name representations
+    # - Aliases for common abbreviations
+    #
+    # ## Usage
+    #
+    # ```
+    # Unit::Weight::Unit::Kilogram  # Full enum reference
+    # :kilogram                     # Symbol shorthand in constructors
+    # Unit::Weight::Unit::Kg        # Alias
+    # ```
     enum Unit
       # Metric units
       Gram
@@ -131,13 +170,30 @@ module Unit
       Unit::Slug      => BigDecimal.new("14593.903"),        # Based on 1 slug = 32.174 lb
     }
     
-    # Value stored as BigDecimal for precision
+    # The numeric value of the weight measurement, stored as BigDecimal for precision
     getter value : BigDecimal
     
-    # Unit of measurement
+    # The unit of this weight measurement
     getter unit : Unit
     
-    # Creates a new weight with the given value and unit
+    # Creates a new weight measurement with the given value and unit.
+    #
+    # ```
+    # # Using symbols (recommended)
+    # weight = Unit::Weight.new(5.5, :kilogram)
+    # 
+    # # Using enum values
+    # weight = Unit::Weight.new(10, Unit::Weight::Unit::Pound)
+    # 
+    # # Various numeric types supported
+    # Unit::Weight.new(100, :gram)                    # Int32
+    # Unit::Weight.new(2.5, :kilogram)                # Float64
+    # Unit::Weight.new(BigDecimal.new("0.001"), :tonne)  # BigDecimal
+    # ```
+    #
+    # @param value The numeric value (any Number type)
+    # @param unit The unit as enum value or symbol
+    # @raise ArgumentError if value is NaN or infinite
     def initialize(value : Number, @unit : Unit)
       # Handle Float edge cases before conversion
       if value.is_a?(Float32) || value.is_a?(Float64)
@@ -155,17 +211,36 @@ module Unit
       validate_value!
     end
     
-    # Returns the base unit for weight measurements (gram)
+    # Returns the base unit for weight measurements.
+    #
+    # All weight conversions go through gram as the base unit to ensure
+    # consistency and minimize compound conversion errors.
+    #
+    # ```
+    # Unit::Weight.base_unit  # => Unit::Weight::Unit::Gram
+    # ```
     def self.base_unit
       Unit::Gram
     end
     
-    # Returns the conversion factor for the given unit
+    # Returns the conversion factor to grams for the given unit.
+    #
+    # This factor represents how many grams are in one unit of the given type.
+    #
+    # ```
+    # Unit::Weight.conversion_factor(Unit::Weight::Unit::Kilogram)  # => BigDecimal("1000")
+    # Unit::Weight.conversion_factor(:pound)                        # => BigDecimal("453.59237")
+    # ```
     def self.conversion_factor(unit : Unit)
       CONVERSION_FACTORS[unit]
     end
     
-    # Returns true if the given unit is metric
+    # Checks if the given unit is part of the metric system.
+    #
+    # ```
+    # Unit::Weight.metric_unit?(:kilogram)  # => true
+    # Unit::Weight.metric_unit?(:pound)     # => false
+    # ```
     def self.metric_unit?(unit : Unit)
       unit.metric?
     end
