@@ -697,7 +697,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -705,7 +705,7 @@
             "description": "Create the foundational UnitError exception class and establish the inheritance structure",
             "dependencies": [],
             "details": "Implement the base UnitError class that inherits from Crystal's Exception class. This will serve as the parent class for all domain-specific exceptions in the Unit module. Include a basic constructor that accepts a message parameter and any common functionality that should be shared across all unit-related exceptions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test that UnitError can be instantiated with a message, verify it inherits from Exception, ensure it can be caught in rescue blocks, and test that it provides appropriate stack trace information"
           },
           {
@@ -716,7 +716,7 @@
               "11.1"
             ],
             "details": "Implement ConversionError class that inherits from UnitError. The constructor should accept from_unit and to_unit parameters (as strings or unit types) and an optional reason parameter. Build informative error messages that clearly indicate which units failed to convert and why. Consider adding additional metadata fields that could help with debugging, such as the value being converted.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test initialization with various unit types, verify error messages are properly formatted with unit information, test with and without reason parameter, ensure the exception can be caught as both ConversionError and UnitError"
           },
           {
@@ -727,7 +727,7 @@
               "11.1"
             ],
             "details": "Implement ParseError for when string inputs cannot be parsed into measurements, accepting the invalid input string and optional reason. Implement ValidationError for general validation failures like negative values where only positive are allowed, or values outside acceptable ranges. Both should provide clear, actionable error messages that help developers understand what went wrong.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test ParseError with various invalid input strings and verify error messages include the problematic input, test ValidationError with different validation scenarios, ensure both exceptions properly inherit from UnitError and can be rescued appropriately"
           },
           {
@@ -738,7 +738,7 @@
               "11.1"
             ],
             "details": "Implement ArithmeticError class for when arithmetic operations fail, such as adding incompatible units or division by zero. The constructor should accept the operation name (e.g., 'addition', 'division') and a reason explaining the failure. Consider including the operands' types or units in the error message for better debugging context.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with various arithmetic operations and failure reasons, verify error messages clearly indicate the operation and reason for failure, test that the exception can be caught at different levels of the exception hierarchy"
           },
           {
@@ -752,7 +752,7 @@
               "11.4"
             ],
             "details": "Add helper methods to exceptions where appropriate, such as methods to extract unit information from ConversionError or the problematic input from ParseError. Document each exception class with Crystal doc comments explaining when they should be raised, what information they contain, and provide usage examples. Consider adding factory methods for common error scenarios to ensure consistent error messages across the codebase.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test all helper methods return expected values, verify documentation generates correctly with crystal docs, test factory methods produce consistent error messages, ensure examples in documentation compile and work as expected"
           }
         ]
@@ -1056,7 +1056,7 @@
     ],
     "metadata": {
       "created": "2025-08-01T04:58:51.369Z",
-      "updated": "2025-08-01T07:05:06.583Z",
+      "updated": "2025-08-01T07:11:49.644Z",
       "description": "Tasks for master context"
     }
   }

@@ -1,4 +1,5 @@
 # A type-safe measurement library for Crystal
+require "./unit/exceptions"
 require "./unit/measurement"
 require "./unit/conversion"
 require "./unit/parser"
