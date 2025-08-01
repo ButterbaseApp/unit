@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Crystal
+      uses: crystal-lang/install-crystal@v1
+      with:
+        crystal: 1.14.0
+    
+    - name: Cache shards
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/shards
+        key: ${{ runner.os }}-shards-${{ hashFiles('shard.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-shards-
+    
+    - name: Install dependencies
+      run: shards install
+    
+    - name: Run tests
+      run: crystal spec --error-on-warnings
+    
+    - name: Check formatting
+      run: crystal tool format --check
+    
+    - name: Run linter
+      run: ./bin/ameba

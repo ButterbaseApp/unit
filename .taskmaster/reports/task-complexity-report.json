@@ -1,0 +1,133 @@
+{
+	"meta": {
+		"generatedAt": "2025-08-01T04:59:58.222Z",
+		"tasksAnalyzed": 15,
+		"totalTasks": 15,
+		"analysisCount": 15,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Initialize Crystal Project Structure",
+			"complexityScore": 4,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the Crystal project initialization into separate subtasks for: 1) Basic project setup with crystal init, 2) Configuring shard.yml with dependencies, 3) Setting up development tools (ameba, coverage), 4) Creating GitHub Actions CI/CD workflow, 5) Adding project configuration files (.editorconfig, .gitignore), 6) Creating initial source structure and entry points",
+			"reasoning": "While conceptually straightforward, this task involves multiple distinct setup steps across different tools and configurations. Each subtask is independent and can be verified separately."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Implement Generic Measurement Class with Phantom Types",
+			"complexityScore": 7,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Implement the core Measurement class with: 1) Basic class structure with phantom types, 2) BigDecimal value storage and initialization, 3) Type parameter constraints and validation, 4) Immutability guarantees with readonly getters, 5) Support for various numeric input types, 6) Value validation and error handling, 7) Core specs for type safety, 8) Documentation and usage examples",
+			"reasoning": "This is the foundational class requiring careful design of phantom types, generic constraints, and precision handling. The implementation needs thorough testing of type safety and numeric conversions."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Create Unit Enum System for Weight",
+			"complexityScore": 5,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Create the Weight measurement system: 1) Define Weight class inheriting from Measurement with proper phantom types, 2) Implement comprehensive Unit enum with all weight units, 3) Add enum aliases for common abbreviations, 4) Define precise conversion factors using BigDecimal, 5) Write comprehensive specs verifying all units and conversions",
+			"reasoning": "Moderate complexity due to the need for precise conversion factors and proper enum design. The pattern established here will be replicated for other measurement types."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Create Unit Enum System for Length",
+			"complexityScore": 5,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Create the Length measurement system: 1) Define Length class with proper inheritance, 2) Implement Unit enum with metric units (meter, cm, mm, km), 3) Add imperial units (inch, foot, yard, mile) with aliases, 4) Define ISO-standard conversion factors, 5) Write specs testing all conversions against standards",
+			"reasoning": "Similar complexity to Weight but requires careful attention to international standards for length conversions. The dual metric/imperial system adds some complexity."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Create Unit Enum System for Volume",
+			"complexityScore": 5,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Create the Volume measurement system: 1) Define Volume class structure, 2) Implement Unit enum for metric volumes (liter, milliliter), 3) Add US liquid measurements (gallon, quart, pint, cup, fl oz), 4) Define NIST-standard conversion factors, 5) Write specs for recipe conversion use cases",
+			"reasoning": "Similar pattern to other measurement types but focused on liquid volumes. The US measurement system relationships need careful testing."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Implement Unit Conversion System",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Build the conversion system: 1) Create Conversion module with convert_to method, 2) Implement two-step conversion algorithm (source→base→target), 3) Add convenience 'to' method alias, 4) Implement conversion caching for performance, 5) Handle edge cases and precision, 6) Write comprehensive conversion specs, 7) Add benchmarks for conversion performance",
+			"reasoning": "Core functionality requiring careful algorithm design to maintain precision through conversions. The caching system adds complexity, and extensive testing is needed for accuracy."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement Arithmetic Operations Module",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Implement arithmetic operations: 1) Create Arithmetic module structure, 2) Implement addition with automatic unit conversion, 3) Implement subtraction with unit handling, 4) Add scalar multiplication support, 5) Add scalar division with zero checking, 6) Write comprehensive specs for all operations and edge cases",
+			"reasoning": "Requires careful handling of unit conversions during operations while maintaining immutability and precision. Error handling and type safety add complexity."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Implement Comparison Operations",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Add comparison support: 1) Include Comparable module in Measurement class, 2) Implement spaceship operator with unit conversion, 3) Override equality operator for cross-unit comparisons, 4) Implement hash method ensuring equal measurements have equal hashes, 5) Write specs for sorting and hash table usage",
+			"reasoning": "Moderately complex due to the need to handle cross-unit comparisons correctly and ensure hash consistency for equal measurements regardless of units."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Implement String Parsing System",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Build the parsing system: 1) Design regex patterns for measurement formats, 2) Implement decimal number parsing, 3) Add fraction parsing support, 4) Create unit string matching with aliases, 5) Implement main parse method with error handling, 6) Add support for various spacing patterns, 7) Write extensive parsing specs",
+			"reasoning": "Complex due to the need to handle multiple input formats, fractions, and flexible spacing while providing clear error messages. Requires robust regex design and testing."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Implement String Formatting System",
+			"complexityScore": 6,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Create the formatting system: 1) Implement basic to_s with IO support, 2) Add configurable format method with precision control, 3) Create humanize method with pluralization, 4) Implement smart value formatting (whole vs decimal), 5) Add multiple unit format options, 6) Write specs for all formatting variations",
+			"reasoning": "Moderate complexity with multiple formatting options and the need to handle pluralization and precision elegantly. The IO integration adds some technical complexity."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Create Custom Exception Types",
+			"complexityScore": 3,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Define exception hierarchy: 1) Create base UnitError exception, 2) Implement ConversionError with context, 3) Add ParseError and ValidationError types, 4) Create ArithmeticError for operation failures",
+			"reasoning": "Straightforward implementation of exception classes with appropriate context. Low complexity as it's mainly defining error types and messages."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "Implement Avram Integration Module",
+			"complexityScore": 9,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Build Avram integration: 1) Design measurement_column macro structure, 2) Implement column getter with null handling, 3) Implement column setter with serialization, 4) Add validation helpers and macros, 5) Handle unit string parsing and validation, 6) Create integration specs with mock Avram models, 7) Test query capabilities, 8) Document Lucky app integration",
+			"reasoning": "High complexity due to macro programming, database serialization concerns, and the need to integrate smoothly with Avram's patterns. Requires deep understanding of both libraries."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "Create Migration Helpers for Avram",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Create migration helpers: 1) Design add_measurement_column macro, 2) Implement precision and scale configuration, 3) Add remove_measurement_column helper, 4) Create change_measurement_precision macro, 5) Add index support for range queries, 6) Write specs verifying SQL generation",
+			"reasoning": "Complex macro programming with database-specific concerns. Need to handle various configuration options and ensure generated SQL is correct across databases."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "Implement Serialization Support",
+			"complexityScore": 6,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Add serialization support: 1) Include JSON::Serializable in Measurement, 2) Add YAML::Serializable support, 3) Implement custom enum converter for proper serialization, 4) Override to_json for custom format, 5) Ensure precision preservation in serialization, 6) Write round-trip serialization specs",
+			"reasoning": "Moderate complexity due to custom converters needed for enums and the requirement to preserve BigDecimal precision through serialization cycles."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "Create Comprehensive Documentation and Examples",
+			"complexityScore": 7,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Create documentation suite: 1) Write README.md with installation and quick start, 2) Generate API documentation with crystal docs, 3) Create getting-started guide, 4) Write Lucky/Avram integration guide, 5) Document custom measurement creation, 6) Add performance guide with benchmarks, 7) Create example applications, 8) Build migration guide from other solutions",
+			"reasoning": "Requires creating multiple types of documentation and working examples. The Lucky example app adds complexity, and all code examples must be tested and maintained."
+		}
+	]
+}

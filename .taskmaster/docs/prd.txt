@@ -1,0 +1,351 @@
+# Product Requirements Document: Unit - Crystal Measurement Library
+
+## 1. Project Overview
+
+### 1.1 Project Name
+**Unit** - A comprehensive measurement and unit conversion library for Crystal
+
+### 1.2 Project Vision
+Create a type-safe, performant, and extensible measurement library for Crystal that provides compile-time safety, precision arithmetic, and seamless integration with Crystal's ecosystem, particularly Lucky/Avram applications.
+
+### 1.3 Project Goals
+- **Primary Goal**: Deliver a production-ready measurement library with compile-time type safety
+- **Secondary Goals**: 
+  - Provide built-in support for common measurement types (Weight, Length, Volume)
+  - Enable easy extension for custom measurement types
+  - Integrate seamlessly with Avram for database persistence
+  - Maintain high performance through Crystal's compile-time optimizations
+  - Follow Crystal idioms and conventions
+
+### 1.4 Success Metrics
+- Zero runtime type errors for measurement operations
+- Performance competitive with manual number handling
+- Successful integration with at least one Lucky application
+- Documentation coverage >95%
+- Test coverage >95%
+
+## 2. Target Audience
+
+### 2.1 Primary Users
+- **Crystal developers** building applications requiring measurement handling
+- **E-commerce developers** needing weight, dimension, and volume calculations
+- **Scientific/engineering applications** requiring precise unit conversions
+- **Lucky framework developers** needing database-backed measurement storage
+
+### 2.2 User Personas
+- **Sarah (E-commerce Developer)**: Needs weight/dimension calculations for shipping
+- **Mike (Scientific App Developer)**: Requires precise conversions with no precision loss
+- **Alex (Lucky Developer)**: Wants seamless ORM integration for measurement storage
+
+## 3. Core Requirements
+
+### 3.1 Functional Requirements
+
+#### 3.1.1 Measurement Creation and Validation
+- **REQ-F-001**: Create measurements with value and unit enum
+- **REQ-F-002**: Validate unit compatibility at compile time
+- **REQ-F-003**: Support numeric types: Int32, Int64, Float64, BigDecimal, BigRational
+- **REQ-F-004**: Reject blank/nil values with clear error messages
+
+#### 3.1.2 Unit Conversion System
+- **REQ-F-005**: Convert between compatible units within same measurement type
+- **REQ-F-006**: Maintain precision using BigDecimal for all internal calculations
+- **REQ-F-007**: Support direct conversion methods with enum parameters
+- **REQ-F-008**: Cache conversion factors for performance
+- **REQ-F-009**: Handle complex conversion paths (e.g., imperial to metric)
+
+#### 3.1.3 Arithmetic Operations
+- **REQ-F-010**: Support addition between same measurement types
+- **REQ-F-011**: Support subtraction between same measurement types
+- **REQ-F-012**: Support scaling by numeric factors
+- **REQ-F-013**: Prevent arithmetic between incompatible measurement types at compile time
+- **REQ-F-014**: Automatically convert units during arithmetic operations
+
+#### 3.1.4 Comparison Operations
+- **REQ-F-015**: Support equality comparison with automatic unit conversion
+- **REQ-F-016**: Support ordering comparisons (<, >, <=, >=)
+- **REQ-F-017**: Implement Comparable interface properly
+
+#### 3.1.5 String Operations
+- **REQ-F-018**: Parse measurement strings like "10.5 kg", "3 feet", "1/2 lb"
+- **REQ-F-019**: Format measurements with customizable string templates
+- **REQ-F-020**: Provide humanized output (e.g., "10 kilograms" vs "10 kg")
+- **REQ-F-021**: Support multiple parsing formats and handle whitespace
+
+### 3.2 Built-in Measurement Types
+
+#### 3.2.1 Weight Measurements
+- **REQ-F-022**: Support metric units (gram, kilogram, milligram, tonne)
+- **REQ-F-023**: Support imperial units (pound, ounce, slug)
+- **REQ-F-024**: Provide convenient enum aliases (g, kg, mg, lb, oz)
+- **REQ-F-025**: Use gram as base unit for internal calculations
+
+#### 3.2.2 Length Measurements
+- **REQ-F-026**: Support metric units (meter, centimeter, millimeter, kilometer)
+- **REQ-F-027**: Support imperial units (inch, foot, yard, mile)
+- **REQ-F-028**: Provide convenient enum aliases (m, cm, mm, km, in, ft, yd, mi)
+- **REQ-F-029**: Use meter as base unit for internal calculations
+
+#### 3.2.3 Volume Measurements
+- **REQ-F-030**: Support metric units (liter, milliliter)
+- **REQ-F-031**: Support US imperial units (gallon, quart, pint, cup, fluid ounce)
+- **REQ-F-032**: Provide convenient enum aliases (l, ml, gal, qt, pt, fl_oz)
+- **REQ-F-033**: Use liter as base unit for internal calculations
+
+### 3.3 Extensibility Requirements
+
+#### 3.3.1 Custom Measurement Types
+- **REQ-F-034**: Provide DSL for creating custom measurement types
+- **REQ-F-035**: Support linear conversion factors between units
+- **REQ-F-036**: Support offset-based conversions (e.g., temperature)
+- **REQ-F-037**: Enable SI prefix generation for metric units
+
+#### 3.3.2 Unit System Builder
+- **REQ-F-038**: Allow defining base units for measurement systems
+- **REQ-F-039**: Support unit aliases and multiple names
+- **REQ-F-040**: Validate unit system consistency during build
+- **REQ-F-041**: Generate conversion tables automatically
+
+### 3.4 Database Integration Requirements
+
+#### 3.4.1 Avram Integration
+- **REQ-F-042**: Provide Avram mixin for measurement columns
+- **REQ-F-043**: Store measurements as separate value/unit columns in database
+- **REQ-F-044**: Support nullable measurement columns
+- **REQ-F-045**: Enable querying by measurement value ranges
+- **REQ-F-046**: Validate measurement units in model save operations
+
+#### 3.4.2 Migration Support
+- **REQ-F-047**: Provide migration helpers for measurement columns
+- **REQ-F-048**: Support precision/scale configuration for decimal values
+- **REQ-F-049**: Handle unit column sizing and indexing recommendations
+
+### 3.5 Performance Requirements
+
+#### 3.5.1 Runtime Performance
+- **REQ-P-001**: Conversion operations complete in <1ms for common cases
+- **REQ-P-002**: Memory usage scales linearly with number of measurements
+- **REQ-P-003**: Minimal runtime overhead compared to manual calculations
+
+#### 3.5.2 Compile-time Performance
+- **REQ-P-004**: Type checking completes without significant compilation slowdown
+- **REQ-P-005**: Generic specialization optimizes common measurement types
+- **REQ-P-006**: Conversion table generation completes during compilation
+
+### 3.6 Quality Requirements
+
+#### 3.6.1 Type Safety
+- **REQ-Q-001**: All measurement type mismatches caught at compile time
+- **REQ-Q-002**: Unit enum mismatches caught at compile time
+- **REQ-Q-003**: Zero runtime type-related exceptions in normal usage
+
+#### 3.6.2 Precision
+- **REQ-Q-004**: No precision loss in conversions using exact factors
+- **REQ-Q-005**: Deterministic rounding for inexact conversions
+- **REQ-Q-006**: Support for arbitrary precision calculations via BigDecimal
+
+#### 3.6.3 Error Handling
+- **REQ-Q-007**: Clear error messages for invalid operations
+- **REQ-Q-008**: Meaningful exception types for different error categories
+- **REQ-Q-009**: Graceful handling of edge cases (zero, negative values)
+
+## 4. Technical Architecture
+
+### 4.1 Core Architecture Decisions
+- **Phantom Types**: Use `Measurement(T, U)` for compile-time type safety
+- **Enum-based Units**: Replace symbols with typed enums for performance and safety
+- **Generic Specialization**: Leverage Crystal's generics for type-safe operations
+- **Immutable Objects**: All measurement instances are immutable for thread safety
+
+### 4.2 Module Structure
+```
+Unit/
+├── src/unit.cr                    # Main entry point and type aliases
+├── src/unit/
+│   ├── measurement.cr             # Generic measurement class
+│   ├── arithmetic.cr              # Mathematical operations module
+│   ├── conversion.cr              # Unit conversion logic
+│   ├── parser.cr                  # String parsing utilities
+│   ├── formatter.cr               # Display formatting
+│   ├── exceptions.cr              # Custom error types
+│   ├── measurements/              # Built-in measurement types
+│   │   ├── weight.cr
+│   │   ├── length.cr
+│   │   └── volume.cr
+│   └── integrations/
+│       └── avram.cr               # Lucky/Avram integration
+```
+
+### 4.3 Key Classes and Interfaces
+- `Unit::Measurement(T, U)` - Generic measurement with phantom typing
+- `Unit::Weight`, `Unit::Length`, `Unit::Volume` - Specialized measurement classes
+- `Unit::Conversion` - Handles unit conversion calculations
+- `Unit::Parser/Formatter` - String handling utilities
+
+## 5. User Experience Requirements
+
+### 5.1 API Design
+- **REQ-UX-001**: Intuitive measurement creation: `Unit::Weight.new(10, Unit::Weight::Unit::Kg)`
+- **REQ-UX-002**: Natural arithmetic: `weight1 + weight2`
+- **REQ-UX-003**: Simple conversions: `weight.convert_to(Unit::Weight::Unit::Lb)`
+- **REQ-UX-004**: Clear string parsing: `Unit::Weight.parse("10.5 kg")`
+
+### 5.2 IDE Experience
+- **REQ-UX-005**: Full autocomplete support for unit enums
+- **REQ-UX-006**: Inline documentation for all public methods
+- **REQ-UX-007**: Type hints show measurement types clearly
+- **REQ-UX-008**: Compile-time error messages are actionable
+
+### 5.3 Documentation
+- **REQ-UX-009**: Comprehensive API documentation with examples
+- **REQ-UX-010**: Migration guide from manual calculations
+- **REQ-UX-011**: Integration guide for Lucky applications
+- **REQ-UX-012**: Performance optimization guide
+
+## 6. Integration Requirements
+
+### 6.1 Lucky Framework Integration
+- **REQ-I-001**: Model integration via include/extend pattern
+- **REQ-I-002**: Form handling for measurement inputs
+- **REQ-I-003**: JSON serialization for API responses
+- **REQ-I-004**: Query builder support for measurement filters
+
+### 6.2 Crystal Ecosystem Integration
+- **REQ-I-005**: JSON::Serializable support
+- **REQ-I-006**: YAML::Serializable support
+- **REQ-I-007**: HTTP::Params parsing support
+- **REQ-I-008**: Spec helper methods for testing
+
+## 7. Implementation Plan
+
+### 7.1 Phase 1: Core Foundation (Weeks 1-3)
+- Implement generic measurement class with phantom types
+- Create unit enums for Weight, Length, Volume
+- Implement basic arithmetic operations
+- Set up conversion system infrastructure
+- Create comprehensive test suite
+
+### 7.2 Phase 2: Advanced Features (Weeks 4-5)
+- Implement string parsing and formatting
+- Add comparison operations and sorting
+- Create custom measurement builder DSL
+- Optimize performance and memory usage
+- Add error handling and validation
+
+### 7.3 Phase 3: Integration & Polish (Weeks 6-7)
+- Implement Avram integration
+- Create documentation and examples
+- Performance benchmarking and optimization
+- Lucky application integration testing
+- Final API refinements
+
+### 7.4 Phase 4: Release Preparation (Week 8)
+- Comprehensive testing across Crystal versions
+- Documentation review and completion
+- Release candidate testing
+- Community feedback integration
+
+## 8. Testing Strategy
+
+### 8.1 Unit Testing
+- Test all measurement operations with various numeric types
+- Validate conversion accuracy with known reference values
+- Test error conditions and edge cases
+- Verify compile-time type safety with negative tests
+
+### 8.2 Integration Testing
+- Test Avram model integration with real database
+- Validate Lucky application integration patterns
+- Test JSON serialization/deserialization
+- Performance testing with large datasets
+
+### 8.3 Property-Based Testing
+- Use Crystal's built-in random testing for conversion properties
+- Validate arithmetic properties (commutativity, associativity)
+- Test round-trip conversions for precision preservation
+
+## 9. Documentation Requirements
+
+### 9.1 API Documentation
+- Comprehensive method documentation with type signatures
+- Usage examples for every public method
+- Integration examples for common use cases
+- Migration guide from manual calculations
+
+### 9.2 Guides and Tutorials
+- Getting started guide for new users
+- Advanced usage patterns and best practices
+- Lucky integration tutorial with real examples
+- Custom measurement type creation guide
+
+### 9.3 Reference Materials
+- Complete unit conversion reference tables
+- Supported measurement types and units
+- Performance characteristics and optimization tips
+- Troubleshooting guide for common issues
+
+## 10. Success Criteria
+
+### 10.1 Technical Success
+- All functional requirements implemented and tested
+- Performance meets or exceeds specified requirements
+- Zero known bugs in core functionality
+- Successful integration with Lucky framework
+
+### 10.2 Usability Success
+- Developer survey shows >80% satisfaction with API design
+- Documentation rated as clear and comprehensive
+- Integration examples work without modification
+- Community adoption shows growth trajectory
+
+### 10.3 Quality Success
+- Test coverage >95% for all modules
+- All compile-time safety requirements validated
+- Performance benchmarks meet specified targets
+- Code review process shows maintainable architecture
+
+## 11. Future Enhancements
+
+### 11.1 Additional Measurement Types
+- Temperature (Celsius, Fahrenheit, Kelvin, Rankine)
+- Pressure (Pascal, PSI, Bar, Torr)
+- Energy (Joule, Calorie, BTU, kWh)
+- Power (Watt, Horsepower)
+- Speed/Velocity (m/s, mph, knots)
+
+### 11.2 Advanced Features
+- Compound units (e.g., m/s², kg⋅m/s²)
+- Unit dimension analysis and validation
+- Scientific notation support
+- Localization for unit names and formatting
+- Currency conversion with exchange rate updates
+
+### 11.3 Framework Integrations
+- GraphQL scalar type support
+- Kemal web framework integration
+- Crystal CLI argument parsing
+- Crystal configuration file formats
+
+## 12. Risk Assessment
+
+### 12.1 Technical Risks
+- **Risk**: Crystal's generic system limitations
+  **Mitigation**: Prototype key features early, have fallback plans
+- **Risk**: Precision issues with BigDecimal
+  **Mitigation**: Comprehensive testing with reference implementations
+- **Risk**: Performance overhead from type safety
+  **Mitigation**: Benchmark against manual implementations
+
+### 12.2 Project Risks
+- **Risk**: Scope creep with additional measurement types
+  **Mitigation**: Strict phase boundaries, defer enhancements to post-v1
+- **Risk**: Lucky framework compatibility changes
+  **Mitigation**: Track Lucky development, maintain compatibility layer
+- **Risk**: Community adoption challenges
+  **Mitigation**: Focus on documentation and real-world examples
+
+## 13. Conclusion
+
+The Unit measurement library will provide Crystal developers with a robust, type-safe, and performant solution for handling measurements and unit conversions. The phantom type approach ensures compile-time safety while maintaining excellent performance characteristics. The planned Avram integration will make it particularly valuable for Lucky applications requiring measurement storage and manipulation.
+
+The implementation plan balances ambition with practicality, focusing on core functionality first while laying the groundwork for future enhancements. Success will be measured not just by technical achievement, but by developer adoption and satisfaction with the API design and documentation quality.
