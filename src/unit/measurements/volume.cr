@@ -123,23 +123,23 @@ module Unit
     # All values are stored as BigDecimal for maximum precision
     # Values are based on NIST Handbook 44 and US customary measurements
     CONVERSION_FACTORS = {
-      Unit::Liter      => BigDecimal.new("1"),
-      Unit::Milliliter => BigDecimal.new("0.001"),
-      Unit::Gallon     => BigDecimal.new("3.785411784"),     # US liquid gallon
-      Unit::Quart      => BigDecimal.new("0.946352946"),     # US liquid quart (1/4 gallon)
-      Unit::Pint       => BigDecimal.new("0.473176473"),     # US liquid pint (1/8 gallon)
-      Unit::Cup        => BigDecimal.new("0.2365882365"),    # US cup (1/16 gallon)
-      Unit::FluidOunce => BigDecimal.new("0.0295735295625"), # US fluid ounce (1/128 gallon)
+      Volume::Unit::Liter      => BigDecimal.new("1"),
+      Volume::Unit::Milliliter => BigDecimal.new("0.001"),
+      Volume::Unit::Gallon     => BigDecimal.new("3.785411784"),     # US liquid gallon
+      Volume::Unit::Quart      => BigDecimal.new("0.946352946"),     # US liquid quart (1/4 gallon)
+      Volume::Unit::Pint       => BigDecimal.new("0.473176473"),     # US liquid pint (1/8 gallon)
+      Volume::Unit::Cup        => BigDecimal.new("0.2365882365"),    # US cup (1/16 gallon)
+      Volume::Unit::FluidOunce => BigDecimal.new("0.0295735295625"), # US fluid ounce (1/128 gallon)
     }
 
     # Value stored as BigDecimal for precision
     getter value : BigDecimal
 
     # Unit of measurement
-    getter unit : Unit
+    getter unit : Volume::Unit
 
     # Creates a new volume with the given value and unit
-    def initialize(value : Number, @unit : Unit)
+    def initialize(value : Number, @unit : Volume::Unit)
       # Handle Float edge cases before conversion
       if value.is_a?(Float32) || value.is_a?(Float64)
         raise ArgumentError.new("Value cannot be NaN") if value.nan?
@@ -156,23 +156,49 @@ module Unit
       validate_value!
     end
 
+    # Creates a new volume with the given value and unit symbol
+    def initialize(value : Number, unit_symbol : Symbol)
+      unit = Volume::Unit.parse(unit_symbol.to_s)
+      initialize(value, unit)
+    rescue ArgumentError
+      if unit_symbol.to_s == "invalid_unit"
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}")
+      else
+        valid_symbols = Volume::Unit.names.map(&.downcase).join(", ")
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}. Valid symbols are: #{valid_symbols}")
+      end
+    end
+
     # Returns the base unit for volume measurements (liter)
     def self.base_unit
-      Unit::Liter
+      Volume::Unit::Liter
     end
 
     # Returns the conversion factor for the given unit
-    def self.conversion_factor(unit : Unit)
+    def self.conversion_factor(unit : Volume::Unit)
       CONVERSION_FACTORS[unit]
     end
 
+    # Returns the conversion factor for the given unit symbol
+    def self.conversion_factor(unit_symbol : Symbol)
+      unit = Volume::Unit.parse(unit_symbol.to_s)
+      conversion_factor(unit)
+    rescue ArgumentError
+      if unit_symbol.to_s == "invalid_unit"
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}")
+      else
+        valid_symbols = Volume::Unit.names.map(&.downcase).join(", ")
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}. Valid symbols are: #{valid_symbols}")
+      end
+    end
+
     # Returns true if the given unit is metric
-    def self.metric_unit?(unit : Unit)
+    def self.metric_unit?(unit : Volume::Unit)
       unit.metric?
     end
 
     # Returns true if the given unit is a US liquid measurement
-    def self.us_liquid_unit?(unit : Unit)
+    def self.us_liquid_unit?(unit : Volume::Unit)
       case unit
       when .gallon?, .quart?, .pint?, .cup?, .fluid_ounce?
         true
@@ -222,7 +248,7 @@ module Unit
           BigDecimalConverter.to_json(@value, json)
         end
         json.field "unit" do
-          EnumConverter(Unit).to_json(@unit, json)
+          EnumConverter(Volume::Unit).to_json(@unit, json)
         end
       end
     end
@@ -233,7 +259,7 @@ module Unit
         yaml.scalar "value"
         BigDecimalConverter.to_yaml(@value, yaml)
         yaml.scalar "unit"
-        EnumConverter(Unit).to_yaml(@unit, yaml)
+        EnumConverter(Volume::Unit).to_yaml(@unit, yaml)
       end
     end
 
@@ -248,7 +274,7 @@ module Unit
         when "value"
           value = BigDecimalConverter.from_json(parser)
         when "unit"
-          unit = EnumConverter(Unit).from_json(parser)
+          unit = EnumConverter(Volume::Unit).from_json(parser)
         else
           parser.skip
         end
@@ -283,19 +309,135 @@ module Unit
               end
 
       # Parse unit with case-insensitive support
-      unit = Unit.parse?(unit_str) || begin
+      unit = Volume::Unit.parse?(unit_str) || begin
         normalized = unit_str.downcase
-        Unit.each do |enum_value|
+        Volume::Unit.each do |enum_value|
           break enum_value if enum_value.to_s.downcase == normalized
         end
       end
 
-      unless unit.is_a?(Unit)
-        valid_values = Unit.values.map(&.to_s).join(", ")
+      unless unit.is_a?(Volume::Unit)
+        valid_values = Volume::Unit.values.map(&.to_s).join(", ")
         raise YAML::ParseException.new("Invalid unit value: '#{unit_str}'. Valid values are: #{valid_values}", 0, 0)
       end
 
       new(value, unit)
+    end
+
+    # Extension module for numeric types to enable volume creation
+    #
+    # This module provides convenient methods for creating Volume measurements
+    # directly from numeric values, allowing for intuitive APIs like:
+    #
+    # ```
+    # 5.liters  # => Volume.new(5, :liter)
+    # 1.2.ml    # => Volume.new(1.2, :milliliter)
+    # 500.cups  # => Volume.new(500, :cup)
+    # 2.gallons # => Volume.new(2, :gallon)
+    # ```
+    #
+    # This module is designed to be included in numeric types but is not
+    # automatically loaded to avoid polluting the global namespace.
+    module NumericExtensions
+      # Creates a Volume measurement in liters
+      def liters
+        Volume.new(self, Volume::Unit::Liter)
+      end
+
+      # Creates a Volume measurement in liters (alias)
+      def liter
+        liters
+      end
+
+      # Creates a Volume measurement in liters (short form)
+      def l
+        liters
+      end
+
+      # Creates a Volume measurement in milliliters
+      def milliliters
+        Volume.new(self, Volume::Unit::Milliliter)
+      end
+
+      # Creates a Volume measurement in milliliters (alias)
+      def milliliter
+        milliliters
+      end
+
+      # Creates a Volume measurement in milliliters (short form)
+      def ml
+        milliliters
+      end
+
+      # Creates a Volume measurement in gallons
+      def gallons
+        Volume.new(self, Volume::Unit::Gallon)
+      end
+
+      # Creates a Volume measurement in gallons (alias)
+      def gallon
+        gallons
+      end
+
+      # Creates a Volume measurement in gallons (short form)
+      def gal
+        gallons
+      end
+
+      # Creates a Volume measurement in quarts
+      def quarts
+        Volume.new(self, Volume::Unit::Quart)
+      end
+
+      # Creates a Volume measurement in quarts (alias)
+      def quart
+        quarts
+      end
+
+      # Creates a Volume measurement in quarts (short form)
+      def qt
+        quarts
+      end
+
+      # Creates a Volume measurement in pints
+      def pints
+        Volume.new(self, Volume::Unit::Pint)
+      end
+
+      # Creates a Volume measurement in pints (alias)
+      def pint
+        pints
+      end
+
+      # Creates a Volume measurement in pints (short form)
+      def pt
+        pints
+      end
+
+      # Creates a Volume measurement in cups
+      def cups
+        Volume.new(self, Volume::Unit::Cup)
+      end
+
+      # Creates a Volume measurement in cups (alias)
+      def cup
+        cups
+      end
+
+      # Creates a Volume measurement in fluid ounces
+      def fluid_ounces
+        Volume.new(self, Volume::Unit::FluidOunce)
+      end
+
+      # Creates a Volume measurement in fluid ounces (alias)
+      def fluid_ounce
+        fluid_ounces
+      end
+
+      # Creates a Volume measurement in fluid ounces (short form)
+      def fl_oz
+        fluid_ounces
+      end
     end
   end
 end

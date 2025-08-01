@@ -37,6 +37,40 @@ describe Unit::Length do
         Unit::Length.new(Float64::INFINITY, Unit::Length::Unit::Meter)
       end
     end
+
+    it "creates length with symbol units" do
+      length_meter = Unit::Length.new(5, :meter)
+      length_meter.value.should eq BigDecimal.new("5")
+      length_meter.unit.should eq Unit::Length::Unit::Meter
+
+      length_foot = Unit::Length.new(10, :foot)
+      length_foot.value.should eq BigDecimal.new("10")
+      length_foot.unit.should eq Unit::Length::Unit::Foot
+
+      length_kilometer = Unit::Length.new(2.5, :kilometer)
+      length_kilometer.value.should eq BigDecimal.new("2.5")
+      length_kilometer.unit.should eq Unit::Length::Unit::Kilometer
+    end
+
+    it "creates length with capitalized symbol units" do
+      length_meter = Unit::Length.new(5, :Meter)
+      length_meter.value.should eq BigDecimal.new("5")
+      length_meter.unit.should eq Unit::Length::Unit::Meter
+
+      length_foot = Unit::Length.new(10, :Foot)
+      length_foot.value.should eq BigDecimal.new("10")
+      length_foot.unit.should eq Unit::Length::Unit::Foot
+    end
+
+    it "rejects invalid symbol units" do
+      expect_raises(ArgumentError, /Invalid unit symbol: invalid_unit/) do
+        Unit::Length.new(5, :invalid_unit)
+      end
+
+      expect_raises(ArgumentError, /Valid symbols are:/) do
+        Unit::Length.new(10, :not_a_unit)
+      end
+    end
   end
 
   describe "Unit enum" do
@@ -172,6 +206,30 @@ describe Unit::Length do
         Unit::Length.conversion_factor(Unit::Length::Unit::Kilometer).should eq BigDecimal.new("1000")
         Unit::Length.conversion_factor(Unit::Length::Unit::Foot).should eq BigDecimal.new("0.3048")
         Unit::Length.conversion_factor(Unit::Length::Unit::Inch).should eq BigDecimal.new("0.0254")
+      end
+
+      it "returns correct conversion factors for symbols" do
+        Unit::Length.conversion_factor(:kilometer).should eq BigDecimal.new("1000")
+        Unit::Length.conversion_factor(:foot).should eq BigDecimal.new("0.3048")
+        Unit::Length.conversion_factor(:inch).should eq BigDecimal.new("0.0254")
+        Unit::Length.conversion_factor(:meter).should eq BigDecimal.new("1")
+        Unit::Length.conversion_factor(:centimeter).should eq BigDecimal.new("0.01")
+      end
+
+      it "returns correct conversion factors for capitalized symbols" do
+        Unit::Length.conversion_factor(:Kilometer).should eq BigDecimal.new("1000")
+        Unit::Length.conversion_factor(:Foot).should eq BigDecimal.new("0.3048")
+        Unit::Length.conversion_factor(:Meter).should eq BigDecimal.new("1")
+      end
+
+      it "rejects invalid symbols" do
+        expect_raises(ArgumentError, /Invalid unit symbol: invalid_unit/) do
+          Unit::Length.conversion_factor(:invalid_unit)
+        end
+
+        expect_raises(ArgumentError, /Valid symbols are:/) do
+          Unit::Length.conversion_factor(:not_a_unit)
+        end
       end
     end
 

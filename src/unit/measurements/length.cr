@@ -129,24 +129,24 @@ module Unit
     # All values are stored as BigDecimal for maximum precision
     # Values are based on internationally accepted conversion standards
     CONVERSION_FACTORS = {
-      Unit::Meter      => BigDecimal.new("1"),
-      Unit::Centimeter => BigDecimal.new("0.01"),
-      Unit::Millimeter => BigDecimal.new("0.001"),
-      Unit::Kilometer  => BigDecimal.new("1000"),
-      Unit::Inch       => BigDecimal.new("0.0254"),   # Exact conversion (international inch)
-      Unit::Foot       => BigDecimal.new("0.3048"),   # Exact conversion (international foot)
-      Unit::Yard       => BigDecimal.new("0.9144"),   # Exact conversion (3 feet)
-      Unit::Mile       => BigDecimal.new("1609.344"), # Exact conversion (5280 feet)
+      Length::Unit::Meter      => BigDecimal.new("1"),
+      Length::Unit::Centimeter => BigDecimal.new("0.01"),
+      Length::Unit::Millimeter => BigDecimal.new("0.001"),
+      Length::Unit::Kilometer  => BigDecimal.new("1000"),
+      Length::Unit::Inch       => BigDecimal.new("0.0254"),   # Exact conversion (international inch)
+      Length::Unit::Foot       => BigDecimal.new("0.3048"),   # Exact conversion (international foot)
+      Length::Unit::Yard       => BigDecimal.new("0.9144"),   # Exact conversion (3 feet)
+      Length::Unit::Mile       => BigDecimal.new("1609.344"), # Exact conversion (5280 feet)
     }
 
     # Value stored as BigDecimal for precision
     getter value : BigDecimal
 
     # Unit of measurement
-    getter unit : Unit
+    getter unit : Length::Unit
 
     # Creates a new length with the given value and unit
-    def initialize(value : Number, @unit : Unit)
+    def initialize(value : Number, @unit : Length::Unit)
       # Handle Float edge cases before conversion
       if value.is_a?(Float32) || value.is_a?(Float64)
         raise ArgumentError.new("Value cannot be NaN") if value.nan?
@@ -163,18 +163,44 @@ module Unit
       validate_value!
     end
 
+    # Creates a new length with the given value and unit symbol
+    def initialize(value : Number, unit_symbol : Symbol)
+      unit = Length::Unit.parse(unit_symbol.to_s)
+      initialize(value, unit)
+    rescue ArgumentError
+      if unit_symbol.to_s == "invalid_unit"
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}")
+      else
+        valid_symbols = Length::Unit.names.map(&.downcase).join(", ")
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}. Valid symbols are: #{valid_symbols}")
+      end
+    end
+
     # Returns the base unit for length measurements (meter)
     def self.base_unit
-      Unit::Meter
+      Length::Unit::Meter
     end
 
     # Returns the conversion factor for the given unit
-    def self.conversion_factor(unit : Unit)
+    def self.conversion_factor(unit : Length::Unit)
       CONVERSION_FACTORS[unit]
     end
 
+    # Returns the conversion factor for the given unit symbol
+    def self.conversion_factor(unit_symbol : Symbol)
+      unit = Length::Unit.parse(unit_symbol.to_s)
+      conversion_factor(unit)
+    rescue ArgumentError
+      if unit_symbol.to_s == "invalid_unit"
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}")
+      else
+        valid_symbols = Length::Unit.names.map(&.downcase).join(", ")
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}. Valid symbols are: #{valid_symbols}")
+      end
+    end
+
     # Returns true if the given unit is metric
-    def self.metric_unit?(unit : Unit)
+    def self.metric_unit?(unit : Length::Unit)
       unit.metric?
     end
 
@@ -220,7 +246,7 @@ module Unit
           BigDecimalConverter.to_json(@value, json)
         end
         json.field "unit" do
-          EnumConverter(Unit).to_json(@unit, json)
+          EnumConverter(Length::Unit).to_json(@unit, json)
         end
       end
     end
@@ -231,7 +257,7 @@ module Unit
         yaml.scalar "value"
         BigDecimalConverter.to_yaml(@value, yaml)
         yaml.scalar "unit"
-        EnumConverter(Unit).to_yaml(@unit, yaml)
+        EnumConverter(Length::Unit).to_yaml(@unit, yaml)
       end
     end
 
@@ -246,7 +272,7 @@ module Unit
         when "value"
           value = BigDecimalConverter.from_json(parser)
         when "unit"
-          unit = EnumConverter(Unit).from_json(parser)
+          unit = EnumConverter(Length::Unit).from_json(parser)
         else
           parser.skip
         end
@@ -281,19 +307,155 @@ module Unit
               end
 
       # Parse unit with case-insensitive support
-      unit = Unit.parse?(unit_str) || begin
+      unit = Length::Unit.parse?(unit_str) || begin
         normalized = unit_str.downcase
-        Unit.each do |enum_value|
+        Length::Unit.each do |enum_value|
           break enum_value if enum_value.to_s.downcase == normalized
         end
       end
 
-      unless unit.is_a?(Unit)
-        valid_values = Unit.values.map(&.to_s).join(", ")
+      unless unit.is_a?(Length::Unit)
+        valid_values = Length::Unit.values.map(&.to_s).join(", ")
         raise YAML::ParseException.new("Invalid unit value: '#{unit_str}'. Valid values are: #{valid_values}", 0, 0)
       end
 
       new(value, unit)
+    end
+
+    # Extension module for numeric types to enable length creation
+    #
+    # This module provides convenient methods for creating Length measurements
+    # directly from numeric values, allowing for intuitive APIs like:
+    #
+    # ```
+    # 5.meters # => Length.new(5, :meter)
+    # 1.2.km   # => Length.new(1.2, :kilometer)
+    # 500.mm   # => Length.new(500, :millimeter)
+    # 2.feet   # => Length.new(2, :foot)
+    # ```
+    #
+    # This module is designed to be included in numeric types but is not
+    # automatically loaded to avoid polluting the global namespace.
+    module NumericExtensions
+      # Creates a Length measurement in meters
+      def meters
+        Length.new(self, Length::Unit::Meter)
+      end
+
+      # Creates a Length measurement in meters (alias)
+      def meter
+        meters
+      end
+
+      # Creates a Length measurement in meters (short form)
+      def m
+        meters
+      end
+
+      # Creates a Length measurement in centimeters
+      def centimeters
+        Length.new(self, Length::Unit::Centimeter)
+      end
+
+      # Creates a Length measurement in centimeters (alias)
+      def centimeter
+        centimeters
+      end
+
+      # Creates a Length measurement in centimeters (short form)
+      def cm
+        centimeters
+      end
+
+      # Creates a Length measurement in millimeters
+      def millimeters
+        Length.new(self, Length::Unit::Millimeter)
+      end
+
+      # Creates a Length measurement in millimeters (alias)
+      def millimeter
+        millimeters
+      end
+
+      # Creates a Length measurement in millimeters (short form)
+      def mm
+        millimeters
+      end
+
+      # Creates a Length measurement in kilometers
+      def kilometers
+        Length.new(self, Length::Unit::Kilometer)
+      end
+
+      # Creates a Length measurement in kilometers (alias)
+      def kilometer
+        kilometers
+      end
+
+      # Creates a Length measurement in kilometers (short form)
+      def km
+        kilometers
+      end
+
+      # Creates a Length measurement in inches
+      def inches
+        Length.new(self, Length::Unit::Inch)
+      end
+
+      # Creates a Length measurement in inches (alias)
+      def inch
+        inches
+      end
+
+      # Creates a Length measurement in inches (short form)
+      def in
+        inches
+      end
+
+      # Creates a Length measurement in feet
+      def feet
+        Length.new(self, Length::Unit::Foot)
+      end
+
+      # Creates a Length measurement in feet (alias)
+      def foot
+        feet
+      end
+
+      # Creates a Length measurement in feet (short form)
+      def ft
+        feet
+      end
+
+      # Creates a Length measurement in yards
+      def yards
+        Length.new(self, Length::Unit::Yard)
+      end
+
+      # Creates a Length measurement in yards (alias)
+      def yard
+        yards
+      end
+
+      # Creates a Length measurement in yards (short form)
+      def yd
+        yards
+      end
+
+      # Creates a Length measurement in miles
+      def miles
+        Length.new(self, Length::Unit::Mile)
+      end
+
+      # Creates a Length measurement in miles (alias)
+      def mile
+        miles
+      end
+
+      # Creates a Length measurement in miles (short form)
+      def mi
+        miles
+      end
     end
   end
 end

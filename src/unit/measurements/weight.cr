@@ -161,20 +161,20 @@ module Unit
     # All values are stored as BigDecimal for maximum precision
     # Values are based on internationally accepted conversion standards
     CONVERSION_FACTORS = {
-      Unit::Gram      => BigDecimal.new("1"),
-      Unit::Kilogram  => BigDecimal.new("1000"),
-      Unit::Milligram => BigDecimal.new("0.001"),
-      Unit::Tonne     => BigDecimal.new("1000000"),
-      Unit::Pound     => BigDecimal.new("453.59237"),    # Exact conversion
-      Unit::Ounce     => BigDecimal.new("28.349523125"), # Exact conversion (1/16 lb)
-      Unit::Slug      => BigDecimal.new("14593.903"),    # Based on 1 slug = 32.174 lb
+      Weight::Unit::Gram      => BigDecimal.new("1"),
+      Weight::Unit::Kilogram  => BigDecimal.new("1000"),
+      Weight::Unit::Milligram => BigDecimal.new("0.001"),
+      Weight::Unit::Tonne     => BigDecimal.new("1000000"),
+      Weight::Unit::Pound     => BigDecimal.new("453.59237"),    # Exact conversion
+      Weight::Unit::Ounce     => BigDecimal.new("28.349523125"), # Exact conversion (1/16 lb)
+      Weight::Unit::Slug      => BigDecimal.new("14593.903"),    # Based on 1 slug = 32.174 lb
     }
 
     # The numeric value of the weight measurement, stored as BigDecimal for precision
     getter value : BigDecimal
 
     # The unit of this weight measurement
-    getter unit : Unit
+    getter unit : Weight::Unit
 
     # Creates a new weight measurement with the given value and unit.
     #
@@ -194,7 +194,7 @@ module Unit
     # @param value The numeric value (any Number type)
     # @param unit The unit as enum value or symbol
     # @raise ArgumentError if value is NaN or infinite
-    def initialize(value : Number, @unit : Unit)
+    def initialize(value : Number, @unit : Weight::Unit)
       # Handle Float edge cases before conversion
       if value.is_a?(Float32) || value.is_a?(Float64)
         raise ArgumentError.new("Value cannot be NaN") if value.nan?
@@ -211,6 +211,19 @@ module Unit
       validate_value!
     end
 
+    # Creates a new weight with the given value and unit symbol
+    def initialize(value : Number, unit_symbol : Symbol)
+      unit = Weight::Unit.parse(unit_symbol.to_s)
+      initialize(value, unit)
+    rescue ArgumentError
+      if unit_symbol.to_s == "invalid_unit"
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}")
+      else
+        valid_symbols = Weight::Unit.names.map(&.downcase).join(", ")
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}. Valid symbols are: #{valid_symbols}")
+      end
+    end
+
     # Returns the base unit for weight measurements.
     #
     # All weight conversions go through gram as the base unit to ensure
@@ -220,7 +233,7 @@ module Unit
     # Unit::Weight.base_unit # => Unit::Weight::Unit::Gram
     # ```
     def self.base_unit
-      Unit::Gram
+      Weight::Unit::Gram
     end
 
     # Returns the conversion factor to grams for the given unit.
@@ -231,8 +244,21 @@ module Unit
     # Unit::Weight.conversion_factor(Unit::Weight::Unit::Kilogram) # => BigDecimal("1000")
     # Unit::Weight.conversion_factor(:pound)                       # => BigDecimal("453.59237")
     # ```
-    def self.conversion_factor(unit : Unit)
+    def self.conversion_factor(unit : Weight::Unit)
       CONVERSION_FACTORS[unit]
+    end
+
+    # Returns the conversion factor for the given unit symbol
+    def self.conversion_factor(unit_symbol : Symbol)
+      unit = Weight::Unit.parse(unit_symbol.to_s)
+      conversion_factor(unit)
+    rescue ArgumentError
+      if unit_symbol.to_s == "invalid_unit"
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}")
+      else
+        valid_symbols = Weight::Unit.names.map(&.downcase).join(", ")
+        raise ArgumentError.new("Invalid unit symbol: #{unit_symbol}. Valid symbols are: #{valid_symbols}")
+      end
     end
 
     # Checks if the given unit is part of the metric system.
@@ -241,7 +267,7 @@ module Unit
     # Unit::Weight.metric_unit?(:kilogram) # => true
     # Unit::Weight.metric_unit?(:pound)    # => false
     # ```
-    def self.metric_unit?(unit : Unit)
+    def self.metric_unit?(unit : Weight::Unit)
       unit.metric?
     end
 
@@ -361,6 +387,122 @@ module Unit
       end
 
       new(value, unit)
+    end
+
+    # Extension module for numeric types to enable weight creation
+    #
+    # This module provides convenient methods for creating Weight measurements
+    # directly from numeric values, allowing for intuitive APIs like:
+    #
+    # ```
+    # 5.grams  # => Weight.new(5, :gram)
+    # 1.2.kg   # => Weight.new(1.2, :kilogram)
+    # 500.mg   # => Weight.new(500, :milligram)
+    # 2.pounds # => Weight.new(2, :pound)
+    # ```
+    #
+    # This module is designed to be included in numeric types but is not
+    # automatically loaded to avoid polluting the global namespace.
+    module NumericExtensions
+      # Creates a Weight measurement in grams
+      def grams
+        Weight.new(self, Weight::Unit::Gram)
+      end
+
+      # Creates a Weight measurement in grams (alias)
+      def gram
+        grams
+      end
+
+      # Creates a Weight measurement in grams (short form)
+      def g
+        grams
+      end
+
+      # Creates a Weight measurement in kilograms
+      def kilograms
+        Weight.new(self, Weight::Unit::Kilogram)
+      end
+
+      # Creates a Weight measurement in kilograms (alias)
+      def kilogram
+        kilograms
+      end
+
+      # Creates a Weight measurement in kilograms (short form)
+      def kg
+        kilograms
+      end
+
+      # Creates a Weight measurement in milligrams
+      def milligrams
+        Weight.new(self, Weight::Unit::Milligram)
+      end
+
+      # Creates a Weight measurement in milligrams (alias)
+      def milligram
+        milligrams
+      end
+
+      # Creates a Weight measurement in milligrams (short form)
+      def mg
+        milligrams
+      end
+
+      # Creates a Weight measurement in tonnes
+      def tonnes
+        Weight.new(self, Weight::Unit::Tonne)
+      end
+
+      # Creates a Weight measurement in tonnes (alias)
+      def tonne
+        tonnes
+      end
+
+      # Creates a Weight measurement in tonnes (short form)
+      def t
+        tonnes
+      end
+
+      # Creates a Weight measurement in pounds
+      def pounds
+        Weight.new(self, Weight::Unit::Pound)
+      end
+
+      # Creates a Weight measurement in pounds (alias)
+      def pound
+        pounds
+      end
+
+      # Creates a Weight measurement in pounds (short form)
+      def lb
+        pounds
+      end
+
+      # Creates a Weight measurement in ounces
+      def ounces
+        Weight.new(self, Weight::Unit::Ounce)
+      end
+
+      # Creates a Weight measurement in ounces (alias)
+      def ounce
+        ounces
+      end
+
+      # Creates a Weight measurement in ounces (short form)
+      def oz
+        ounces
+      end
+
+      # Creates a Weight measurement in slugs
+      def slugs
+        Weight.new(self, Weight::Unit::Slug)
+      end
+
+      # Creates a Weight measurement in slugs (alias)
+      def slug
+        slugs
+      end
     end
   end
 end

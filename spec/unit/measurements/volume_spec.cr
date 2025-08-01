@@ -37,6 +37,34 @@ describe Unit::Volume do
         Unit::Volume.new(Float64::INFINITY, Unit::Volume::Unit::Liter)
       end
     end
+
+    describe "symbol constructor" do
+      it "creates volume with symbol units" do
+        volume1 = Unit::Volume.new(2.5, :liter)
+        volume1.value.should eq BigDecimal.new("2.5")
+        volume1.unit.should eq Unit::Volume::Unit::Liter
+
+        volume2 = Unit::Volume.new(1, :gallon)
+        volume2.value.should eq BigDecimal.new("1")
+        volume2.unit.should eq Unit::Volume::Unit::Gallon
+
+        volume3 = Unit::Volume.new(16, :cup)
+        volume3.value.should eq BigDecimal.new("16")
+        volume3.unit.should eq Unit::Volume::Unit::Cup
+      end
+
+      it "handles capitalized symbols" do
+        volume = Unit::Volume.new(1.5, :Liter)
+        volume.value.should eq BigDecimal.new("1.5")
+        volume.unit.should eq Unit::Volume::Unit::Liter
+      end
+
+      it "raises error for invalid symbols" do
+        expect_raises(ArgumentError, /Invalid unit symbol: invalid_unit/) do
+          Unit::Volume.new(1, :invalid_unit)
+        end
+      end
+    end
   end
 
   describe "Unit enum" do
@@ -159,6 +187,24 @@ describe Unit::Volume do
         Unit::Volume.conversion_factor(Unit::Volume::Unit::Gallon).should eq BigDecimal.new("3.785411784")
         Unit::Volume.conversion_factor(Unit::Volume::Unit::Cup).should eq BigDecimal.new("0.2365882365")
         Unit::Volume.conversion_factor(Unit::Volume::Unit::FluidOunce).should eq BigDecimal.new("0.0295735295625")
+      end
+
+      it "accepts symbol units" do
+        Unit::Volume.conversion_factor(:gallon).should eq BigDecimal.new("3.785411784")
+        Unit::Volume.conversion_factor(:cup).should eq BigDecimal.new("0.2365882365")
+        Unit::Volume.conversion_factor(:liter).should eq BigDecimal.new("1")
+        Unit::Volume.conversion_factor(:milliliter).should eq BigDecimal.new("0.001")
+      end
+
+      it "handles capitalized symbol units" do
+        Unit::Volume.conversion_factor(:Gallon).should eq BigDecimal.new("3.785411784")
+        Unit::Volume.conversion_factor(:Liter).should eq BigDecimal.new("1")
+      end
+
+      it "raises error for invalid symbol units" do
+        expect_raises(ArgumentError, /Invalid unit symbol: invalid_unit/) do
+          Unit::Volume.conversion_factor(:invalid_unit)
+        end
       end
     end
 
