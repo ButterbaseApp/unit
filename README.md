@@ -88,7 +88,7 @@ The Unit library provides a robust, type-safe system for handling measurements a
    ```yaml
    dependencies:
      unit:
-       github:/ButterbaseApp/unit
+       github: ButterbaseApp/unit
    ```
 
 2. Run `shards install`
