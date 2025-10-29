@@ -196,7 +196,6 @@ describe Unit::Avram::ColumnExtensions do
 
         # Get cached value
         original_weight = product.weight
-        puts "Original weight: #{original_weight}"
 
         # Change underlying value directly
         product.weight_value = 20.0

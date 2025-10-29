@@ -7,6 +7,7 @@ require "../converters/big_decimal_converter"
 require "../converters/enum_converter"
 require "json"
 require "yaml"
+require "./density"
 
 module Unit
   # Volume measurement class with comprehensive unit support
@@ -438,6 +439,99 @@ module Unit
       def fl_oz
         fluid_ounces
       end
+    end
+
+    # Convert this volume to weight given a density
+    #
+    # This method calculates the mass that would occupy this volume
+    # at the given density, using the formula: mass = volume × density
+    #
+    # ```
+    # # Using a Density object
+    # volume = Unit::Volume.new(500, :milliliter)
+    # water_density = Unit::Density.new(1.0, :gram_per_milliliter)
+    # weight = volume.to_weight(water_density) # => 500 g
+    #
+    # # Using density value and unit (creates Density internally)
+    # weight = volume.to_weight(0.92, :gram_per_milliliter) # => 460 g
+    #
+    # # With explicit naming for clarity
+    # weight = volume.weight_given(water_density)
+    # ```
+    #
+    # @param density The density of the material
+    # @return The weight that would occupy this volume at the given density
+    # @raise ArgumentError if density is zero or negative
+    def to_weight(density : Density) : Weight
+      if density.value <= 0
+        raise ArgumentError.new("Density must be positive (got #{density.value})")
+      end
+
+      # Convert volume to milliliters and density to g/mL for calculation
+      volume_ml = self.convert_to(:milliliter).value
+      density_g_per_ml = density.convert_to(:gram_per_milliliter).value
+
+      # Calculate mass in grams: mass = volume × density
+      mass_grams = volume_ml * density_g_per_ml
+
+      Weight.new(mass_grams, :gram)
+    end
+
+    # Convert this volume to weight given a density value and unit
+    #
+    # This is a convenience method that creates a Density object internally
+    # from the provided value and unit, then performs the conversion.
+    #
+    # ```
+    # # Using density value and unit without creating Density object
+    # volume = Unit::Volume.new(250, :milliliter)
+    # flour_weight = volume.to_weight(0.593, :gram_per_milliliter) # ~148 g
+    #
+    # # Different density units supported
+    # honey_weight = volume.to_weight(1.42, :g_per_cc)     # ~355 g
+    # mercury_weight = volume.to_weight(13.534, :g_per_cc) # ~3.38 kg
+    # ```
+    #
+    # @param density_value The numeric density value
+    # @param density_unit The unit of the density
+    # @return The weight that would occupy this volume at the given density
+    # @raise ArgumentError if density_value is zero or negative, or if density_unit is invalid
+    def to_weight(density_value : Number, density_unit : Symbol) : Weight
+      density = Density.new(density_value, density_unit)
+      to_weight(density)
+    end
+
+    # Alias for to_weight with explicit naming for clarity
+    #
+    # This method provides a more explicit name that can make code
+    # more readable, especially in complex expressions.
+    #
+    # ```
+    # volume = Unit::Volume.new(500, :milliliter)
+    # weight = volume.weight_given(Unit::Density.new(1.0, :g_per_ml))
+    # ```
+    #
+    # @param density The density of the material
+    # @return The weight that would occupy this volume at the given density
+    def weight_given(density : Density) : Weight
+      to_weight(density)
+    end
+
+    # Alias for to_weight with explicit naming for clarity (overload)
+    #
+    # This method provides a more explicit name that can make code
+    # more readable, especially in complex expressions.
+    #
+    # ```
+    # volume = Unit::Volume.new(250, :milliliter)
+    # weight = volume.weight_given(0.593, :gram_per_milliliter)
+    # ```
+    #
+    # @param density_value The numeric density value
+    # @param density_unit The unit of the density
+    # @return The weight that would occupy this volume at the given density
+    def weight_given(density_value : Number, density_unit : Symbol) : Weight
+      to_weight(density_value, density_unit)
     end
   end
 end

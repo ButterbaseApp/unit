@@ -57,10 +57,20 @@
 # - `.pints`, `.pint`, `.pt` - Creates Volume in pints
 # - `.cups`, `.cup` - Creates Volume in cups
 # - `.fluid_ounces`, `.fluid_ounce`, `.fl_oz` - Creates Volume in fluid ounces
+#
+# ### Density Methods
+# - `.gram_per_milliliters`, `.gram_per_milliliter`, `.g_per_ml` - Creates Density in g/mL
+# - `.kilograms_per_liter`, `.kilogram_per_liter`, `.kg_per_l` - Creates Density in kg/L
+# - `.grams_per_cubic_centimeter`, `.gram_per_cubic_centimeter`, `.g_per_cc`, `.g_per_cm3` - Creates Density in g/cm³
+# - `.kilograms_per_cubic_meter`, `.kilogram_per_cubic_meter`, `.kg_per_m3` - Creates Density in kg/m³
+# - `.pounds_per_gallon`, `.pound_per_gallon`, `.lb_per_gal` - Creates Density in lb/gal
+# - `.pounds_per_cubic_foot`, `.pound_per_cubic_foot`, `.lb_per_ft3` - Creates Density in lb/ft³
+# - `.ounces_per_cubic_inch`, `.ounce_per_cubic_inch`, `.oz_per_in3` - Creates Density in oz/in³
 
 require "./measurements/weight"
 require "./measurements/length"
 require "./measurements/volume"
+require "./measurements/density"
 
 module Unit
   # Base module for all numeric extensions
@@ -71,6 +81,7 @@ module Unit
     include Weight::NumericExtensions
     include Length::NumericExtensions
     include Volume::NumericExtensions
+    include Density::NumericExtensions
   end
 end
 

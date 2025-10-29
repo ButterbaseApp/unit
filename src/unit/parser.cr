@@ -74,13 +74,14 @@ module Unit
     #
     # Captures:
     #   - Value (decimal or fraction)
-    #   - Unit string (letters, case-insensitive)
+    #   - Unit string (letters, letters with slashes, or symbols, case-insensitive)
     #
     # Supports flexible whitespace between value and unit, including:
     # - No space between value and unit: "10kg"
     # - Multiple spaces: "10   kg"
     # - Tab characters: "10\tkg"
     # - Leading/trailing whitespace: " 10 kg "
+    # - Density units with slashes: "1.0 g/mL", "62.4 lb/ft³"
     #
     # Examples:
     #   "10 kg" -> value: "10", unit: "kg"
@@ -88,7 +89,9 @@ module Unit
     #   "-3.14 meters" -> value: "-3.14", unit: "meters"
     #   "5.5kg" -> value: "5.5", unit: "kg" (no space)
     #   "  10   kg  " -> value: "10", unit: "kg" (extra whitespace)
-    MEASUREMENT_REGEX = /^\s*(-?\d+(?:\/\d+|\.\d+)?)\s*([a-zA-Z]+)\s*$/
+    #   "1.0 g/mL" -> value: "1.0", unit: "g/mL" (density)
+    #   "62.4 lb/ft³" -> value: "62.4", unit: "lb/ft³" (density)
+    MEASUREMENT_REGEX = /^\s*(-?\d+(?:\/\d+|\.\d+)?)\s*([a-zA-Z\/³]+)\s*$/
 
     # Parses a value string into either BigDecimal or BigRational
     #
@@ -247,6 +250,128 @@ module Unit
       unit = parse_unit(Length, unit_str)
 
       Length.new(value, unit)
+    end
+
+    # Parses a unit string for Volume measurements
+    def self.parse_unit(volume_class : Volume.class, unit_str : String) : Volume::Unit
+      unit_str_lower = unit_str.strip.downcase
+
+      Volume::Unit.each do |unit|
+        # Strategy 1: Match enum string representation
+        return unit if unit.to_s.downcase == unit_str_lower
+
+        # Strategy 2: Match unit symbol
+        begin
+          return unit if unit.symbol.downcase == unit_str_lower
+        rescue
+          # Continue if symbol method fails
+        end
+
+        # Strategy 3: Match unit name (singular and plural)
+        begin
+          return unit if unit.name.downcase == unit_str_lower
+          return unit if unit.name(plural: true).downcase == unit_str_lower
+        rescue
+          # Continue if name method fails
+        end
+      end
+
+      raise ArgumentError.new("Unknown unit: #{unit_str}")
+    end
+
+    # Parses a measurement string into a Volume object
+    #
+    # Examples:
+    #   parse(Volume, "2.5 L") -> Volume.new(2.5, Volume::Unit::Liter)
+    #   parse(Volume, "1/2 cup") -> Volume.new(0.5, Volume::Unit::Cup)
+    #   parse(Volume, "500 ml") -> Volume.new(500, Volume::Unit::Milliliter)
+    def self.parse(volume_class : Volume.class, input : String) : Volume
+      match = MEASUREMENT_REGEX.match(input.strip)
+      raise ArgumentError.new("Invalid format: #{input}") unless match
+
+      value_str = match[1]
+      unit_str = match[2]
+
+      # Parse value (decimal or fraction)
+      value = parse_value(value_str)
+
+      # Parse unit
+      unit = parse_unit(Volume, unit_str)
+
+      Volume.new(value, unit)
+    end
+
+    # Parses a unit string for Density measurements
+    def self.parse_unit(density_class : Density.class, unit_str : String) : Density::Unit
+      unit_str_lower = unit_str.strip.downcase
+
+      # Replace common abbreviations first
+      normalized = unit_str_lower
+        .gsub("ml", "milliliter")
+        .gsub("l", "liter")
+        .gsub("kg", "kilogram")
+        .gsub("cc", "cubic_centimeter")
+        .gsub("cm3", "cubic_centimeter")
+        .gsub("m3", "cubic_meter")
+        .gsub("gal", "gallon")
+        .gsub("ft3", "cubic_foot")
+        .gsub("in3", "cubic_inch")
+
+      # Handle the "g" abbreviation carefully to avoid replacing "gram"
+      if unit_str_lower.includes?("g/") || unit_str_lower.includes?("/g")
+        normalized = normalized.gsub("g", "gram")
+      else
+        normalized = normalized.gsub(/^g$/, "gram").gsub(/g$/, "gram")
+      end
+
+      # Replace "/" with "_per_" for compound units
+      if normalized.includes?("/")
+        normalized = normalized.gsub("/", "_per_")
+      end
+
+      Density::Unit.each do |unit|
+        # Strategy 1: Match enum string representation
+        return unit if unit.to_s.downcase == normalized
+
+        # Strategy 2: Match unit symbol
+        begin
+          return unit if unit.symbol.downcase == unit_str_lower
+        rescue
+          # Continue if symbol method fails
+        end
+
+        # Strategy 3: Match unit name (singular and plural)
+        begin
+          return unit if unit.name.downcase == normalized
+          return unit if unit.name(plural: true).downcase == normalized
+        rescue
+          # Continue if name method fails
+        end
+      end
+
+      raise ArgumentError.new("Unknown unit: #{unit_str}")
+    end
+
+    # Parses a measurement string into a Density object
+    #
+    # Examples:
+    #   parse(Density, "1.0 g/mL") -> Density.new(1.0, Density::Unit::GramPerMilliliter)
+    #   parse(Density, "62.4 lb/ft³") -> Density.new(62.4, Density::Unit::PoundPerCubicFoot)
+    #   parse(Density, "0.92 g/cc") -> Density.new(0.92, Density::Unit::GramPerCubicCentimeter)
+    def self.parse(density_class : Density.class, input : String) : Density
+      match = MEASUREMENT_REGEX.match(input.strip)
+      raise ArgumentError.new("Invalid format: #{input}") unless match
+
+      value_str = match[1]
+      unit_str = match[2]
+
+      # Parse value (decimal or fraction)
+      value = parse_value(value_str)
+
+      # Parse unit
+      unit = parse_unit(Density, unit_str)
+
+      Density.new(value, unit)
     end
   end
 end

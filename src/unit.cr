@@ -8,6 +8,7 @@ require "./unit/parser"
 require "./unit/measurements/weight"
 require "./unit/measurements/length"
 require "./unit/measurements/volume"
+require "./unit/measurements/density"
 
 module Unit
   VERSION = "0.1.0"

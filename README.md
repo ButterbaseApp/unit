@@ -70,16 +70,18 @@ The Unit library provides a robust, type-safe system for handling measurements a
 - **Weight/Mass**: Gram, Kilogram, Pound, Ounce, Tonne, Milligram, Slug
 - **Length/Distance**: Meter, Centimeter, Foot, Inch, Kilometer, Mile, Yard, Millimeter
 - **Volume/Liquid**: Liter, Milliliter, Gallon, Cup, FluidOunce, Pint, Quart
+- **Density**: Gram per milliliter, Kilogram per liter, Gram per cm³, Pound per gallon, etc.
 
 **Use Cases:**
 - Scientific computing with precise calculations
-- Recipe scaling and cooking applications
-- E-commerce product specifications
-- Engineering and CAD applications
-- IoT sensor data processing
+- Recipe scaling and cooking applications with ingredient density conversions
+- E-commerce product specifications with dimensional weight calculations
+- Engineering and CAD applications with material density analysis
+- IoT sensor data processing with mass-volume relationships
 - Financial calculations with physical commodities
-- International trade and shipping
+- International trade and shipping with freight density optimization
 - Educational tools and calculators
+- Chemistry and physics laboratory calculations
 
 ## Install
 
@@ -125,6 +127,7 @@ distance = 1.meter + 50.cm + 25.mm  # => 1.52 meter
 # Weight: .grams, .gram, .g, .kilograms, .kg, .pounds, .lb, etc.
 # Length: .meters, .m, .centimeters, .cm, .feet, .ft, .inches, .in, etc.
 # Volume: .liters, .l, .milliliters, .ml, .cups, .gallons, .gal, etc.
+# Density: .g_per_ml, .kg_per_l, .g_per_cc, .lb_per_gal, .lb_per_ft3, etc.
 ```
 
 The extensions are optional and don't pollute the global namespace unless explicitly required. Without extensions, the standard constructor syntax remains available:
@@ -403,11 +406,99 @@ total_flour_cups = scaled_flour.value.to_f
 total_calories = total_flour_cups * flour_calories_per_cup
 ```
 
+### Density Conversions
+
+Convert between weight and volume measurements using density values:
+
+```crystal
+# Create density measurements
+water_density = Unit::Density.new(1.0, :gram_per_milliliter)
+flour_density = Unit::Density.new(0.593, :gram_per_milliliter)
+honey_density = 1.42.g_per_ml  # Using numeric extensions
+
+# Convert weight to volume
+flour_weight = 200.grams
+flour_volume = flour_weight.to_volume(flour_density)  # => ~337 mL
+
+# Convert volume to weight
+milk_volume = 250.milliliters
+milk_weight = milk_volume.to_weight(milk_density)  # => ~258 g
+
+# Use overloaded methods (value + unit) - no Density object needed
+oil_volume = 250.grams.to_volume(0.92, :gram_per_milliliter)  # => ~272 mL
+juice_weight = 1.cup.to_weight(1.03, :g_per_ml)              # => ~244 g
+
+# Use explicit naming for clarity
+butter_volume = 1.pound.volume_given(water_density)
+honey_weight = 2.cups.weight_given(1.42, :gram_per_cubic_centimeter)
+
+# Round-trip conversions maintain precision
+original_weight = 500.grams
+density = Unit::Density.new(0.8, :gram_per_milliliter)
+volume = original_weight.to_volume(density)
+final_weight = volume.to_weight(density)
+original_weight == final_weight  # => true
+```
+
+#### **Density Units Supported**
+
+**Metric Units:**
+- `:gram_per_milliliter` (g/mL) - Base unit
+- `:kilogram_per_liter` (kg/L) - Equivalent to g/mL
+- `:gram_per_cubic_centimeter` (g/cm³) - Equivalent to g/mL
+- `:kilogram_per_cubic_meter` (kg/m³) - 0.001 g/mL
+
+**Imperial Units:**
+- `:pound_per_gallon` (lb/gal) - 0.119826 g/mL
+- `:pound_per_cubic_foot` (lb/ft³) - 0.016019 g/mL
+- `:ounce_per_cubic_inch` (oz/in³) - 1.72999 g/mL
+
+#### **Scientific Applications**
+
+```crystal
+# Buoyancy calculations
+wood_density = Unit::Density.new(0.75, :gram_per_cubic_centimeter)  # Oak wood
+water_density = Unit::Density.new(1.0, :gram_per_milliliter)
+
+wood_volume = Unit::Volume.new(1000, :milliliter)  # 1000 mL = 1000 cm³
+wood_weight = wood_volume.to_weight(wood_density)
+water_displaced = wood_volume.to_weight(water_density)
+
+if wood_weight < water_displaced
+  puts "Wood floats! ✅"
+else
+  puts "Wood sinks! ❌"
+end
+
+# Material property analysis
+aluminum_density = Unit::Density.new(2.70, :gram_per_cubic_centimeter)
+aluminum_block = Unit::Volume.new(100, :milliliter)  # 100 mL = 100 cm³
+aluminum_weight = aluminum_block.to_weight(aluminum_density)
+strength_ratio = aluminum_weight.value / 100  # Weight per cm³
+
+# Chemistry calculations
+mercury_density = Unit::Density.new(13.534, :gram_per_cubic_centimeter)
+mercury_volume = Unit::Volume.new(50, :milliliter)
+mercury_weight = mercury_volume.to_weight(mercury_density)
+puts "#{mercury_weight.format(precision: 1)} of mercury in 50mL"
+
+# Baking applications with custom densities
+flour_density = Unit::Density.new(0.593, :gram_per_milliliter)
+sugar_density = Unit::Density.new(0.850, :gram_per_milliliter)
+
+recipe_weight = 500.grams
+flour_volume = recipe_weight.to_volume(flour_density)
+sugar_volume = recipe_weight.to_volume(sugar_density)
+
+puts "500g flour = #{flour_volume.humanize}"
+puts "500g sugar = #{sugar_volume.humanize}"
+```
+
 ## API
 
 ### Measurement Types
 
-The library provides three core measurement types, each with comprehensive unit support:
+The library provides four core measurement types, each with comprehensive unit support:
 
 #### **Unit::Weight** - Mass/Weight Measurements
 - **Units**: `:gram` (base), `:kilogram`, `:milligram`, `:tonne`, `:pound`, `:ounce`, `:slug`
@@ -422,10 +513,16 @@ The library provides three core measurement types, each with comprehensive unit 
 - **Relationships**: Imperial (12 in = 1 ft, 3 ft = 1 yd, 5280 ft = 1 mi)
 
 #### **Unit::Volume** - Liquid Volume Measurements
-- **Units**: `:liter` (base), `:milliliter`, `:gallon`, `:quart`, `:pint`, `:cup`, `:fluid_ounce`  
+- **Units**: `:liter` (base), `:milliliter`, `:gallon`, `:quart`, `:pint`, `:cup`, `:fluid_ounce`
 - **Aliases**: `L`, `mL`, `gal`, `qt`, `pt`, `fl oz`
 - **System**: US Liquid system with exact conversions (128 fl oz = 1 gal)
 - **Precision**: Cooking measurements support exact fractions
+
+#### **Unit::Density** - Density Measurements (Mass per Volume)
+- **Units**: `:gram_per_milliliter` (base), `:kilogram_per_liter`, `:gram_per_cubic_centimeter`, `:kilogram_per_cubic_meter`, `:pound_per_gallon`, `:pound_per_cubic_foot`, `:ounce_per_cubic_inch`
+- **Aliases**: `g_per_ml`, `kg_per_l`, `g_per_cc`, `kg_per_m3`, `lb_per_gal`, `lb_per_ft3`, `oz_per_in3`
+- **System**: Both metric (g/mL base) and imperial units with exact conversions
+- **Features**: Built-in material density constants, mass-volume conversion support
 
 ### Core Methods
 
@@ -442,11 +539,19 @@ All measurement types inherit from `Unit::Measurement(T, U)` and support:
 - `value : BigDecimal` - Get the numeric value with full precision
 - `unit : Enum` - Get the unit enum value
 
-#### **Arithmetic Operations** 
+#### **Arithmetic Operations**
 - `+(other : Self) : Self` - Add measurements (converts to left operand's unit)
 - `-(other : Self) : Self` - Subtract measurements
 - `*(scalar : Number) : Self` - Multiply by scalar value
 - `/(scalar : Number) : Self` - Divide by scalar value
+
+#### **Density Conversion Operations**
+- `weight.to_volume(density) : Volume` - Convert weight to volume using density
+- `weight.to_volume(value, unit) : Volume` - Convert using density value+unit
+- `weight.volume_given(density) : Volume` - Explicit naming alias
+- `volume.to_weight(density) : Weight` - Convert volume to weight using density
+- `volume.to_weight(value, unit) : Weight` - Convert using density value+unit
+- `volume.weight_given(density) : Weight` - Explicit naming alias
 
 #### **Comparison Operations**
 - `==(other : Self) : Bool` - Equality with automatic unit conversion
@@ -476,12 +581,15 @@ Unit::Parser.parse(input : String, type : T.class) : T
 
 # Supported formats:
 Unit::Parser.parse("10.5 kg", Unit::Weight)           # Decimal values
-Unit::Parser.parse("1 1/2 pounds", Unit::Weight)      # Mixed fractions  
+Unit::Parser.parse("1 1/2 pounds", Unit::Weight)      # Mixed fractions
 Unit::Parser.parse("3/4 cup", Unit::Volume)           # Simple fractions
 Unit::Parser.parse("10kg", Unit::Weight)              # No spaces
 Unit::Parser.parse("5.5 KILOGRAMS", Unit::Weight)     # Case insensitive
 Unit::Parser.parse("  2.5  ft  ", Unit::Length)       # Extra whitespace
 Unit::Parser.parse("1.5e3 g", Unit::Weight)           # Scientific notation
+Unit::Parser.parse("1.0 g/mL", Unit::Density)        # Density measurements
+Unit::Parser.parse("62.4 lb/ft³", Unit::Density)      # Imperial density
+Unit::Parser.parse("0.92 g/cc", Unit::Density)        # Common variations
 ```
 
 ### Formatter
@@ -985,6 +1093,8 @@ crystal docs
 - Documentation improvements and examples
 - Bug fixes with comprehensive test coverage
 - Framework integrations (Granite, Lucky enhancements, etc.)
+- Additional density constants for common materials
+- Enhanced density string parsing (more unit variations)
 
 **Code Quality Standards:**
 - All new code must include comprehensive specs
