@@ -195,7 +195,7 @@ describe Unit::Avram::ColumnExtensions do
         product.weight = Unit::Weight.new(10, :kilogram)
 
         # Get cached value
-        original_weight = product.weight
+        _original_weight = product.weight
 
         # Change underlying value directly
         product.weight_value = 20.0
