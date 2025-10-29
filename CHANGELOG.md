@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-10-29
+
 ### Added
 - **Density measurement class** with comprehensive unit support
   - Metric units: gram_per_milliliter, kilogram_per_liter, gram_per_cubic_centimeter, kilogram_per_cubic_meter
@@ -41,5 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove cursor and taskmaster configuration files
 - Ignore TODOs in ameba linting
 
-[Unreleased]: https://github.com/ButterbaseApp/unit/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ButterbaseApp/unit/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ButterbaseApp/unit/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ButterbaseApp/unit/releases/tag/v0.1.0
