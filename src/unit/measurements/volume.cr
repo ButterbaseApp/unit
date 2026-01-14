@@ -44,6 +44,8 @@ module Unit
       Pint
       Cup
       FluidOunce
+      Tablespoon
+      Teaspoon
 
       # Common aliases for convenience
       L    = Liter
@@ -52,6 +54,8 @@ module Unit
       Qt   = Quart
       Pt   = Pint
       FlOz = FluidOunce
+      Tbsp = Tablespoon
+      Tsp  = Teaspoon
 
       # Returns true if this unit is part of the metric system
       def metric?
@@ -80,6 +84,10 @@ module Unit
           "cup"
         when .fluid_ounce?
           "fl oz"
+        when .tablespoon?
+          "tbsp"
+        when .teaspoon?
+          "tsp"
         else
           to_s.downcase
         end
@@ -102,6 +110,10 @@ module Unit
                       "cup"
                     when .fluid_ounce?
                       "fluid ounce"
+                    when .tablespoon?
+                      "tablespoon"
+                    when .teaspoon?
+                      "teaspoon"
                     else
                       to_s.downcase.gsub("_", " ")
                     end
@@ -126,11 +138,13 @@ module Unit
     CONVERSION_FACTORS = {
       Volume::Unit::Liter      => BigDecimal.new("1"),
       Volume::Unit::Milliliter => BigDecimal.new("0.001"),
-      Volume::Unit::Gallon     => BigDecimal.new("3.785411784"),     # US liquid gallon
-      Volume::Unit::Quart      => BigDecimal.new("0.946352946"),     # US liquid quart (1/4 gallon)
-      Volume::Unit::Pint       => BigDecimal.new("0.473176473"),     # US liquid pint (1/8 gallon)
-      Volume::Unit::Cup        => BigDecimal.new("0.2365882365"),    # US cup (1/16 gallon)
-      Volume::Unit::FluidOunce => BigDecimal.new("0.0295735295625"), # US fluid ounce (1/128 gallon)
+      Volume::Unit::Gallon     => BigDecimal.new("3.785411784"),      # US liquid gallon
+      Volume::Unit::Quart      => BigDecimal.new("0.946352946"),      # US liquid quart (1/4 gallon)
+      Volume::Unit::Pint       => BigDecimal.new("0.473176473"),      # US liquid pint (1/8 gallon)
+      Volume::Unit::Cup        => BigDecimal.new("0.2365882365"),     # US cup (1/16 gallon)
+      Volume::Unit::FluidOunce => BigDecimal.new("0.0295735295625"),  # US fluid ounce (1/128 gallon)
+      Volume::Unit::Tablespoon => BigDecimal.new("0.0147867647813"),  # US tablespoon (1/2 fluid ounce)
+      Volume::Unit::Teaspoon   => BigDecimal.new("0.00492892159375"), # US teaspoon (1/6 fluid ounce)
     }
 
     # Value stored as BigDecimal for precision
@@ -201,7 +215,7 @@ module Unit
     # Returns true if the given unit is a US liquid measurement
     def self.us_liquid_unit?(unit : Volume::Unit)
       case unit
-      when .gallon?, .quart?, .pint?, .cup?, .fluid_ounce?
+      when .gallon?, .quart?, .pint?, .cup?, .fluid_ounce?, .tablespoon?, .teaspoon?
         true
       else
         false
@@ -438,6 +452,36 @@ module Unit
       # Creates a Volume measurement in fluid ounces (short form)
       def fl_oz
         fluid_ounces
+      end
+
+      # Creates a Volume measurement in tablespoons
+      def tablespoons
+        Volume.new(self, Volume::Unit::Tablespoon)
+      end
+
+      # Creates a Volume measurement in tablespoons (alias)
+      def tablespoon
+        tablespoons
+      end
+
+      # Creates a Volume measurement in tablespoons (short form)
+      def tbsp
+        tablespoons
+      end
+
+      # Creates a Volume measurement in teaspoons
+      def teaspoons
+        Volume.new(self, Volume::Unit::Teaspoon)
+      end
+
+      # Creates a Volume measurement in teaspoons (alias)
+      def teaspoon
+        teaspoons
+      end
+
+      # Creates a Volume measurement in teaspoons (short form)
+      def tsp
+        teaspoons
       end
     end
 
